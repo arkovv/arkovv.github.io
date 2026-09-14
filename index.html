@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Friends Cards — Local Table</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body class="signed-out">
+<a class="skip-link" href="#view">Skip to main content</a>
+<header>
+  <div class="bar">
+    <div class="brand"><i aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><rect x="5" y="5" width="17" height="23" rx="3" transform="rotate(-12 5 5)" stroke="currentColor"/><rect x="11" y="4" width="17" height="23" rx="3" fill="currentColor"/><path d="m19.5 10 4 5.5-4 5.5-4-5.5z" fill="#171915"/></svg></i><span>Friends Cards<small>THE LOCAL TABLE</small></span></div>
+    <div class="phase" id="phaseBar"></div>
+    <div class="spacer"></div>
+    <div class="acting">
+      <div class="player-avatar" id="playerAvatar" aria-hidden="true">?</div>
+      <div class="player-identity"><label for="actingSel">ACTING AS</label><select id="actingSel" aria-label="Acting as player"></select><span id="playerInventory" class="player-inventory">Join the table</span></div>
+      <div class="wallet-block"><span class="wallet" id="wallet">—</span><small>CREDITS</small></div>
+    </div>
+  </div>
+  <nav id="nav" aria-label="Table screens"></nav>
+</header>
+<main id="view" tabindex="-1"></main>
+<footer>
+  <button id="adminLogout">Sign out</button>
+  <span class="local-status"><i aria-hidden="true"></i> FRIENDS CARDS <span class="footer-detail">/ SHARED TABLE</span></span>
+  <span class="spacer"></span>
+  <label><input type="checkbox" id="blurTgl"> Blur bid amounts</label>
+  <label><input type="checkbox" id="soundTgl"> Sound</label>
+  <span id="saveState" role="status" aria-live="polite">Loading…</span><button id="retrySave" hidden>Retry save</button><button id="emergencyExport" hidden>Export unsaved table</button>
+</footer>
+<div id="overlayHost"></div>
+<script src="site-config.js"></script>
+<script src="firebase-client.js"></script>
+<script src="state.js"></script>
+<script src="validation.js"></script>
+<script src="persistence.js"></script>
+<script src="engine.js"></script>
+<script src="views.js"></script>
+<script src="actions.js"></script>
+<script src="enhancements.js"></script>
+<script src="card-visuals.js"></script>
+<script src="auth.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

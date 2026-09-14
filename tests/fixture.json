@@ -1,0 +1,1486 @@
+{
+  "version": 1,
+  "config": {
+    "cardsPerPlayer": 3,
+    "desireBudget": 100,
+    "defenseBudget": 100,
+    "weeklyRefill": 100,
+    "expectedRefills": 4,
+    "avgSetReward": 400,
+    "packCost": 50,
+    "failRefund": 10,
+    "targetHits": 4,
+    "bidderFailReward": 20,
+    "legacyTrigger": 0.2,
+    "scarcityExponent": 2,
+    "boostBase": 6,
+    "legacyAgeExponent": 1
+  },
+  "players": [
+    {
+      "id": 1,
+      "name": "Alan",
+      "credits": 370
+    },
+    {
+      "id": 2,
+      "name": "Bea",
+      "credits": 1200
+    },
+    {
+      "id": 3,
+      "name": "Cem",
+      "credits": 1200
+    },
+    {
+      "id": 4,
+      "name": "Dana",
+      "credits": 1200
+    },
+    {
+      "id": 5,
+      "name": "Emil",
+      "credits": 1200
+    },
+    {
+      "id": 6,
+      "name": "Farah",
+      "credits": 1200
+    },
+    {
+      "id": 7,
+      "name": "Goran",
+      "credits": 1200
+    },
+    {
+      "id": 8,
+      "name": "Hana",
+      "credits": 1200
+    }
+  ],
+  "sets": [
+    {
+      "id": 1,
+      "ordinal": 1,
+      "name": "The First Mistake",
+      "state": "LIVE",
+      "config": {
+        "cardsPerPlayer": 3,
+        "desireBudget": 100,
+        "defenseBudget": 100,
+        "weeklyRefill": 100,
+        "expectedRefills": 4,
+        "avgSetReward": 400,
+        "packCost": 50,
+        "failRefund": 10,
+        "targetHits": 4,
+        "bidderFailReward": 20,
+        "legacyTrigger": 0.2,
+        "scarcityExponent": 2,
+        "boostBase": 6,
+        "legacyAgeExponent": 1
+      },
+      "participants": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "designs": [
+        {
+          "id": 1,
+          "authorId": 1,
+          "title": "PUBLIC SHAME",
+          "meme": "Said he has no shame. Market decided to verify.",
+          "request": "Owner may set one reasonable public challenge, agreed in advance.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 2,
+          "authorId": 1,
+          "title": "KARAOKE DEBT",
+          "meme": "Claims perfect pitch. Evidence pending.",
+          "request": "Owner picks one song. It gets performed in front of the group.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 3,
+          "authorId": 1,
+          "title": "CHEF FOR A DAY",
+          "meme": "Owns forty spices, uses salt.",
+          "request": "Owner picks the menu. Cooking and washing up included.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 4,
+          "authorId": 2,
+          "title": "PUBLIC SHAME",
+          "meme": "Said he has no shame. Market decided to verify.",
+          "request": "Owner may set one reasonable public challenge, agreed in advance.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 5,
+          "authorId": 2,
+          "title": "KARAOKE DEBT",
+          "meme": "Claims perfect pitch. Evidence pending.",
+          "request": "Owner picks one song. It gets performed in front of the group.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 6,
+          "authorId": 2,
+          "title": "CHEF FOR A DAY",
+          "meme": "Owns forty spices, uses salt.",
+          "request": "Owner picks the menu. Cooking and washing up included.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 7,
+          "authorId": 3,
+          "title": "PUBLIC SHAME",
+          "meme": "Said he has no shame. Market decided to verify.",
+          "request": "Owner may set one reasonable public challenge, agreed in advance.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 8,
+          "authorId": 3,
+          "title": "KARAOKE DEBT",
+          "meme": "Claims perfect pitch. Evidence pending.",
+          "request": "Owner picks one song. It gets performed in front of the group.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 9,
+          "authorId": 3,
+          "title": "CHEF FOR A DAY",
+          "meme": "Owns forty spices, uses salt.",
+          "request": "Owner picks the menu. Cooking and washing up included.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 10,
+          "authorId": 4,
+          "title": "PUBLIC SHAME",
+          "meme": "Said he has no shame. Market decided to verify.",
+          "request": "Owner may set one reasonable public challenge, agreed in advance.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 11,
+          "authorId": 4,
+          "title": "KARAOKE DEBT",
+          "meme": "Claims perfect pitch. Evidence pending.",
+          "request": "Owner picks one song. It gets performed in front of the group.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 12,
+          "authorId": 4,
+          "title": "CHEF FOR A DAY",
+          "meme": "Owns forty spices, uses salt.",
+          "request": "Owner picks the menu. Cooking and washing up included.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 13,
+          "authorId": 5,
+          "title": "PUBLIC SHAME",
+          "meme": "Said he has no shame. Market decided to verify.",
+          "request": "Owner may set one reasonable public challenge, agreed in advance.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 14,
+          "authorId": 5,
+          "title": "KARAOKE DEBT",
+          "meme": "Claims perfect pitch. Evidence pending.",
+          "request": "Owner picks one song. It gets performed in front of the group.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 15,
+          "authorId": 5,
+          "title": "CHEF FOR A DAY",
+          "meme": "Owns forty spices, uses salt.",
+          "request": "Owner picks the menu. Cooking and washing up included.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 16,
+          "authorId": 6,
+          "title": "PUBLIC SHAME",
+          "meme": "Said he has no shame. Market decided to verify.",
+          "request": "Owner may set one reasonable public challenge, agreed in advance.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 17,
+          "authorId": 6,
+          "title": "KARAOKE DEBT",
+          "meme": "Claims perfect pitch. Evidence pending.",
+          "request": "Owner picks one song. It gets performed in front of the group.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 18,
+          "authorId": 6,
+          "title": "CHEF FOR A DAY",
+          "meme": "Owns forty spices, uses salt.",
+          "request": "Owner picks the menu. Cooking and washing up included.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 19,
+          "authorId": 7,
+          "title": "PUBLIC SHAME",
+          "meme": "Said he has no shame. Market decided to verify.",
+          "request": "Owner may set one reasonable public challenge, agreed in advance.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 20,
+          "authorId": 7,
+          "title": "KARAOKE DEBT",
+          "meme": "Claims perfect pitch. Evidence pending.",
+          "request": "Owner picks one song. It gets performed in front of the group.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 21,
+          "authorId": 7,
+          "title": "CHEF FOR A DAY",
+          "meme": "Owns forty spices, uses salt.",
+          "request": "Owner picks the menu. Cooking and washing up included.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 22,
+          "authorId": 8,
+          "title": "PUBLIC SHAME",
+          "meme": "Said he has no shame. Market decided to verify.",
+          "request": "Owner may set one reasonable public challenge, agreed in advance.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 23,
+          "authorId": 8,
+          "title": "KARAOKE DEBT",
+          "meme": "Claims perfect pitch. Evidence pending.",
+          "request": "Owner picks one song. It gets performed in front of the group.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        },
+        {
+          "id": 24,
+          "authorId": 8,
+          "title": "CHEF FOR A DAY",
+          "meme": "Owns forty spices, uses salt.",
+          "request": "Owner picks the menu. Cooking and washing up included.",
+          "limits": "Nothing dangerous, illegal, expensive or genuinely harmful."
+        }
+      ],
+      "bids": {
+        "1": {
+          "4": 50,
+          "5": 50
+        },
+        "2": {
+          "7": 50,
+          "8": 50
+        },
+        "3": {
+          "10": 50,
+          "11": 50
+        },
+        "4": {
+          "13": 50,
+          "14": 50
+        },
+        "5": {
+          "16": 50,
+          "17": 50
+        },
+        "6": {
+          "19": 50,
+          "20": 50
+        },
+        "7": {
+          "22": 50,
+          "23": 50
+        },
+        "8": {
+          "1": 50,
+          "2": 50
+        }
+      },
+      "locked": {
+        "1": true,
+        "2": true,
+        "3": true,
+        "4": true,
+        "5": true,
+        "6": true,
+        "7": true,
+        "8": true
+      },
+      "defense": {
+        "1": 50,
+        "2": 0,
+        "3": 0,
+        "4": 50,
+        "5": 0,
+        "6": 0,
+        "7": 50,
+        "8": 0,
+        "9": 0,
+        "10": 50,
+        "11": 0,
+        "12": 0,
+        "13": 50,
+        "14": 0,
+        "15": 0,
+        "16": 50,
+        "17": 0,
+        "18": 0,
+        "19": 50,
+        "20": 0,
+        "21": 0,
+        "22": 50,
+        "23": 0,
+        "24": 0
+      },
+      "defLocked": {},
+      "snapshot": {
+        "totalDemand": 800,
+        "avgCard": 33.333333333333336,
+        "avgAuthor": 100,
+        "demand": {
+          "1": 50,
+          "2": 50,
+          "3": 0,
+          "4": 50,
+          "5": 50,
+          "6": 0,
+          "7": 50,
+          "8": 50,
+          "9": 0,
+          "10": 50,
+          "11": 50,
+          "12": 0,
+          "13": 50,
+          "14": 50,
+          "15": 0,
+          "16": 50,
+          "17": 50,
+          "18": 0,
+          "19": 50,
+          "20": 50,
+          "21": 0,
+          "22": 50,
+          "23": 50,
+          "24": 0
+        },
+        "scarcity": {
+          "1": 0.16,
+          "2": 0.16,
+          "3": 1,
+          "4": 0.16,
+          "5": 0.16,
+          "6": 1,
+          "7": 0.16,
+          "8": 0.16,
+          "9": 1,
+          "10": 0.16,
+          "11": 0.16,
+          "12": 1,
+          "13": 0.16,
+          "14": 0.16,
+          "15": 1,
+          "16": 0.16,
+          "17": 0.16,
+          "18": 1,
+          "19": 0.16,
+          "20": 0.16,
+          "21": 1,
+          "22": 0.16,
+          "23": 0.16,
+          "24": 1
+        },
+        "authorDemand": {
+          "1": 100,
+          "2": 100,
+          "3": 100,
+          "4": 100,
+          "5": 100,
+          "6": 100,
+          "7": 100,
+          "8": 100
+        },
+        "rewards": {
+          "1": 400,
+          "2": 400,
+          "3": 400,
+          "4": 400,
+          "5": 400,
+          "6": 400,
+          "7": 400,
+          "8": 400
+        },
+        "authorHit": {
+          "1": 0.5,
+          "2": 0.5,
+          "3": 0.5,
+          "4": 0.5,
+          "5": 0.5,
+          "6": 0.5,
+          "7": 0.5,
+          "8": 0.5
+        },
+        "standard": {
+          "hit": 0.21052631578947367,
+          "fail": 0.7894736842105263,
+          "conditional": {
+            "1": 0.015151515151515152,
+            "2": 0.015151515151515152,
+            "3": 0.0946969696969697,
+            "4": 0.015151515151515152,
+            "5": 0.015151515151515152,
+            "6": 0.0946969696969697,
+            "7": 0.015151515151515152,
+            "8": 0.015151515151515152,
+            "9": 0.0946969696969697,
+            "10": 0.015151515151515152,
+            "11": 0.015151515151515152,
+            "12": 0.0946969696969697,
+            "13": 0.015151515151515152,
+            "14": 0.015151515151515152,
+            "15": 0.0946969696969697,
+            "16": 0.015151515151515152,
+            "17": 0.015151515151515152,
+            "18": 0.0946969696969697,
+            "19": 0.015151515151515152,
+            "20": 0.015151515151515152,
+            "21": 0.0946969696969697,
+            "22": 0.015151515151515152,
+            "23": 0.015151515151515152,
+            "24": 0.0946969696969697
+          },
+          "cards": {
+            "1": 0.003189792663476874,
+            "2": 0.003189792663476874,
+            "3": 0.01993620414673046,
+            "4": 0.003189792663476874,
+            "5": 0.003189792663476874,
+            "6": 0.01993620414673046,
+            "7": 0.003189792663476874,
+            "8": 0.003189792663476874,
+            "9": 0.01993620414673046,
+            "10": 0.003189792663476874,
+            "11": 0.003189792663476874,
+            "12": 0.01993620414673046,
+            "13": 0.003189792663476874,
+            "14": 0.003189792663476874,
+            "15": 0.01993620414673046,
+            "16": 0.003189792663476874,
+            "17": 0.003189792663476874,
+            "18": 0.01993620414673046,
+            "19": 0.003189792663476874,
+            "20": 0.003189792663476874,
+            "21": 0.01993620414673046,
+            "22": 0.003189792663476874,
+            "23": 0.003189792663476874,
+            "24": 0.01993620414673046
+          },
+          "failReward": 10
+        },
+        "rewardPool": 3200,
+        "config": {
+          "cardsPerPlayer": 3,
+          "desireBudget": 100,
+          "defenseBudget": 100,
+          "weeklyRefill": 100,
+          "expectedRefills": 4,
+          "avgSetReward": 400,
+          "packCost": 50,
+          "failRefund": 10,
+          "targetHits": 4,
+          "bidderFailReward": 20,
+          "legacyTrigger": 0.2,
+          "scarcityExponent": 2,
+          "boostBase": 6,
+          "legacyAgeExponent": 1
+        },
+        "finalizedAt": 1788500000000
+      },
+      "createdAt": 1788500000000
+    }
+  ],
+  "instances": [
+    {
+      "id": 1,
+      "designId": 6,
+      "setId": 1,
+      "ownerId": 1,
+      "pullerId": 1,
+      "floatValue": 43709,
+      "catalog": 838,
+      "state": "ACTIVE",
+      "source": "STANDARD",
+      "sourcePackId": null,
+      "createdAt": 1788500000000,
+      "tradeCount": 0,
+      "note": ""
+    },
+    {
+      "id": 2,
+      "designId": 6,
+      "setId": 1,
+      "ownerId": 1,
+      "pullerId": 1,
+      "floatValue": 63918,
+      "catalog": 974,
+      "state": "ACTIVE",
+      "source": "STANDARD",
+      "sourcePackId": null,
+      "createdAt": 1788500000000,
+      "tradeCount": 0,
+      "note": ""
+    },
+    {
+      "id": 3,
+      "designId": 21,
+      "setId": 1,
+      "ownerId": 1,
+      "pullerId": 1,
+      "floatValue": 37121,
+      "catalog": 130,
+      "state": "ACTIVE",
+      "source": "STANDARD",
+      "sourcePackId": null,
+      "createdAt": 1788500000000,
+      "tradeCount": 0,
+      "note": ""
+    }
+  ],
+  "packs": [
+    {
+      "id": 1,
+      "type": "BIDDER",
+      "setId": 1,
+      "authorId": 2,
+      "originBidderId": 1,
+      "ownerId": 1,
+      "odds": {
+        "hit": 0.5,
+        "fail": 0.5,
+        "conditional": {
+          "4": 0.10309820686640155,
+          "5": 0.2525380002185888,
+          "6": 0.6443637929150097
+        },
+        "cards": {
+          "4": 0.05154910343320077,
+          "5": 0.1262690001092944,
+          "6": 0.32218189645750483
+        },
+        "failReward": 20
+      },
+      "raw": {
+        "4": 50,
+        "5": 50,
+        "6": 0
+      },
+      "defense": {
+        "4": 50,
+        "5": 0,
+        "6": 0
+      },
+      "effective": {
+        "4": 0,
+        "5": 50,
+        "6": 0
+      },
+      "opened": false,
+      "createdAt": 1788500000000,
+      "tradeCount": 0
+    },
+    {
+      "id": 2,
+      "type": "BIDDER",
+      "setId": 1,
+      "authorId": 3,
+      "originBidderId": 2,
+      "ownerId": 2,
+      "odds": {
+        "hit": 0.5,
+        "fail": 0.5,
+        "conditional": {
+          "7": 0.10309820686640155,
+          "8": 0.2525380002185888,
+          "9": 0.6443637929150097
+        },
+        "cards": {
+          "7": 0.05154910343320077,
+          "8": 0.1262690001092944,
+          "9": 0.32218189645750483
+        },
+        "failReward": 20
+      },
+      "raw": {
+        "7": 50,
+        "8": 50,
+        "9": 0
+      },
+      "defense": {
+        "7": 50,
+        "8": 0,
+        "9": 0
+      },
+      "effective": {
+        "7": 0,
+        "8": 50,
+        "9": 0
+      },
+      "opened": false,
+      "createdAt": 1788500000000,
+      "tradeCount": 0
+    },
+    {
+      "id": 3,
+      "type": "BIDDER",
+      "setId": 1,
+      "authorId": 4,
+      "originBidderId": 3,
+      "ownerId": 3,
+      "odds": {
+        "hit": 0.5,
+        "fail": 0.5,
+        "conditional": {
+          "10": 0.10309820686640155,
+          "11": 0.2525380002185888,
+          "12": 0.6443637929150097
+        },
+        "cards": {
+          "10": 0.05154910343320077,
+          "11": 0.1262690001092944,
+          "12": 0.32218189645750483
+        },
+        "failReward": 20
+      },
+      "raw": {
+        "10": 50,
+        "11": 50,
+        "12": 0
+      },
+      "defense": {
+        "10": 50,
+        "11": 0,
+        "12": 0
+      },
+      "effective": {
+        "10": 0,
+        "11": 50,
+        "12": 0
+      },
+      "opened": false,
+      "createdAt": 1788500000000,
+      "tradeCount": 0
+    },
+    {
+      "id": 4,
+      "type": "BIDDER",
+      "setId": 1,
+      "authorId": 5,
+      "originBidderId": 4,
+      "ownerId": 4,
+      "odds": {
+        "hit": 0.5,
+        "fail": 0.5,
+        "conditional": {
+          "13": 0.10309820686640155,
+          "14": 0.2525380002185888,
+          "15": 0.6443637929150097
+        },
+        "cards": {
+          "13": 0.05154910343320077,
+          "14": 0.1262690001092944,
+          "15": 0.32218189645750483
+        },
+        "failReward": 20
+      },
+      "raw": {
+        "13": 50,
+        "14": 50,
+        "15": 0
+      },
+      "defense": {
+        "13": 50,
+        "14": 0,
+        "15": 0
+      },
+      "effective": {
+        "13": 0,
+        "14": 50,
+        "15": 0
+      },
+      "opened": false,
+      "createdAt": 1788500000000,
+      "tradeCount": 0
+    },
+    {
+      "id": 5,
+      "type": "BIDDER",
+      "setId": 1,
+      "authorId": 6,
+      "originBidderId": 5,
+      "ownerId": 5,
+      "odds": {
+        "hit": 0.5,
+        "fail": 0.5,
+        "conditional": {
+          "16": 0.10309820686640155,
+          "17": 0.2525380002185888,
+          "18": 0.6443637929150097
+        },
+        "cards": {
+          "16": 0.05154910343320077,
+          "17": 0.1262690001092944,
+          "18": 0.32218189645750483
+        },
+        "failReward": 20
+      },
+      "raw": {
+        "16": 50,
+        "17": 50,
+        "18": 0
+      },
+      "defense": {
+        "16": 50,
+        "17": 0,
+        "18": 0
+      },
+      "effective": {
+        "16": 0,
+        "17": 50,
+        "18": 0
+      },
+      "opened": false,
+      "createdAt": 1788500000000,
+      "tradeCount": 0
+    },
+    {
+      "id": 6,
+      "type": "BIDDER",
+      "setId": 1,
+      "authorId": 7,
+      "originBidderId": 6,
+      "ownerId": 6,
+      "odds": {
+        "hit": 0.5,
+        "fail": 0.5,
+        "conditional": {
+          "19": 0.10309820686640155,
+          "20": 0.2525380002185888,
+          "21": 0.6443637929150097
+        },
+        "cards": {
+          "19": 0.05154910343320077,
+          "20": 0.1262690001092944,
+          "21": 0.32218189645750483
+        },
+        "failReward": 20
+      },
+      "raw": {
+        "19": 50,
+        "20": 50,
+        "21": 0
+      },
+      "defense": {
+        "19": 50,
+        "20": 0,
+        "21": 0
+      },
+      "effective": {
+        "19": 0,
+        "20": 50,
+        "21": 0
+      },
+      "opened": false,
+      "createdAt": 1788500000000,
+      "tradeCount": 0
+    },
+    {
+      "id": 7,
+      "type": "BIDDER",
+      "setId": 1,
+      "authorId": 8,
+      "originBidderId": 7,
+      "ownerId": 7,
+      "odds": {
+        "hit": 0.5,
+        "fail": 0.5,
+        "conditional": {
+          "22": 0.10309820686640155,
+          "23": 0.2525380002185888,
+          "24": 0.6443637929150097
+        },
+        "cards": {
+          "22": 0.05154910343320077,
+          "23": 0.1262690001092944,
+          "24": 0.32218189645750483
+        },
+        "failReward": 20
+      },
+      "raw": {
+        "22": 50,
+        "23": 50,
+        "24": 0
+      },
+      "defense": {
+        "22": 50,
+        "23": 0,
+        "24": 0
+      },
+      "effective": {
+        "22": 0,
+        "23": 50,
+        "24": 0
+      },
+      "opened": false,
+      "createdAt": 1788500000000,
+      "tradeCount": 0
+    },
+    {
+      "id": 8,
+      "type": "BIDDER",
+      "setId": 1,
+      "authorId": 1,
+      "originBidderId": 8,
+      "ownerId": 8,
+      "odds": {
+        "hit": 0.5,
+        "fail": 0.5,
+        "conditional": {
+          "1": 0.10309820686640155,
+          "2": 0.2525380002185888,
+          "3": 0.6443637929150097
+        },
+        "cards": {
+          "1": 0.05154910343320077,
+          "2": 0.1262690001092944,
+          "3": 0.32218189645750483
+        },
+        "failReward": 20
+      },
+      "raw": {
+        "1": 50,
+        "2": 50,
+        "3": 0
+      },
+      "defense": {
+        "1": 50,
+        "2": 0,
+        "3": 0
+      },
+      "effective": {
+        "1": 0,
+        "2": 50,
+        "3": 0
+      },
+      "opened": false,
+      "createdAt": 1788500000000,
+      "tradeCount": 0
+    }
+  ],
+  "ledger": [
+    {
+      "id": 53,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 370,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 52,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 360,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 51,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 410,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 50,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 460,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 49,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 450,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 48,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 500,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 47,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 490,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 46,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 540,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 45,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 530,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 44,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 580,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 43,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 630,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 42,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 620,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 41,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 670,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 40,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 660,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 39,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 710,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 38,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 700,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 37,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 750,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 36,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 740,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 35,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 790,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 34,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 780,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 33,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 830,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 32,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 820,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 31,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 870,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 30,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 860,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 29,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 910,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 28,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 900,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 27,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 950,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 26,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 940,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 25,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 990,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 24,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 980,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 23,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 1030,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 22,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 1020,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 21,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 1070,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 20,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 1060,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 19,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 10,
+      "after": 1110,
+      "type": "STANDARD_FAIL_REFUND",
+      "note": "Standard Pack fail",
+      "setId": 1
+    },
+    {
+      "id": 18,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 1100,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 17,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": -50,
+      "after": 1150,
+      "type": "STANDARD_PACK_PURCHASE",
+      "note": "Set 1 Standard Pack",
+      "setId": 1
+    },
+    {
+      "id": 16,
+      "at": 1788500000000,
+      "playerId": 8,
+      "delta": 400,
+      "after": 1200,
+      "type": "SET_MARKET_REWARD",
+      "note": "Set 1 desire market",
+      "setId": 1
+    },
+    {
+      "id": 15,
+      "at": 1788500000000,
+      "playerId": 7,
+      "delta": 400,
+      "after": 1200,
+      "type": "SET_MARKET_REWARD",
+      "note": "Set 1 desire market",
+      "setId": 1
+    },
+    {
+      "id": 14,
+      "at": 1788500000000,
+      "playerId": 6,
+      "delta": 400,
+      "after": 1200,
+      "type": "SET_MARKET_REWARD",
+      "note": "Set 1 desire market",
+      "setId": 1
+    },
+    {
+      "id": 13,
+      "at": 1788500000000,
+      "playerId": 5,
+      "delta": 400,
+      "after": 1200,
+      "type": "SET_MARKET_REWARD",
+      "note": "Set 1 desire market",
+      "setId": 1
+    },
+    {
+      "id": 12,
+      "at": 1788500000000,
+      "playerId": 4,
+      "delta": 400,
+      "after": 1200,
+      "type": "SET_MARKET_REWARD",
+      "note": "Set 1 desire market",
+      "setId": 1
+    },
+    {
+      "id": 11,
+      "at": 1788500000000,
+      "playerId": 3,
+      "delta": 400,
+      "after": 1200,
+      "type": "SET_MARKET_REWARD",
+      "note": "Set 1 desire market",
+      "setId": 1
+    },
+    {
+      "id": 10,
+      "at": 1788500000000,
+      "playerId": 2,
+      "delta": 400,
+      "after": 1200,
+      "type": "SET_MARKET_REWARD",
+      "note": "Set 1 desire market",
+      "setId": 1
+    },
+    {
+      "id": 9,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 400,
+      "after": 1200,
+      "type": "SET_MARKET_REWARD",
+      "note": "Set 1 desire market",
+      "setId": 1
+    },
+    {
+      "id": 8,
+      "at": 1788500000000,
+      "playerId": 8,
+      "delta": 800,
+      "after": 800,
+      "type": "DEMO_BANKROLL",
+      "note": "demo table starting bankroll",
+      "setId": 1
+    },
+    {
+      "id": 7,
+      "at": 1788500000000,
+      "playerId": 7,
+      "delta": 800,
+      "after": 800,
+      "type": "DEMO_BANKROLL",
+      "note": "demo table starting bankroll",
+      "setId": 1
+    },
+    {
+      "id": 6,
+      "at": 1788500000000,
+      "playerId": 6,
+      "delta": 800,
+      "after": 800,
+      "type": "DEMO_BANKROLL",
+      "note": "demo table starting bankroll",
+      "setId": 1
+    },
+    {
+      "id": 5,
+      "at": 1788500000000,
+      "playerId": 5,
+      "delta": 800,
+      "after": 800,
+      "type": "DEMO_BANKROLL",
+      "note": "demo table starting bankroll",
+      "setId": 1
+    },
+    {
+      "id": 4,
+      "at": 1788500000000,
+      "playerId": 4,
+      "delta": 800,
+      "after": 800,
+      "type": "DEMO_BANKROLL",
+      "note": "demo table starting bankroll",
+      "setId": 1
+    },
+    {
+      "id": 3,
+      "at": 1788500000000,
+      "playerId": 3,
+      "delta": 800,
+      "after": 800,
+      "type": "DEMO_BANKROLL",
+      "note": "demo table starting bankroll",
+      "setId": 1
+    },
+    {
+      "id": 2,
+      "at": 1788500000000,
+      "playerId": 2,
+      "delta": 800,
+      "after": 800,
+      "type": "DEMO_BANKROLL",
+      "note": "demo table starting bankroll",
+      "setId": 1
+    },
+    {
+      "id": 1,
+      "at": 1788500000000,
+      "playerId": 1,
+      "delta": 800,
+      "after": 800,
+      "type": "DEMO_BANKROLL",
+      "note": "demo table starting bankroll",
+      "setId": 1
+    }
+  ],
+  "log": [
+    {
+      "at": 1788500000000,
+      "text": "Alan pulled Goran — CHEF FOR A DAY from a Standard Pack.",
+      "setId": 1,
+      "playerId": 1,
+      "type": "TABLE_EVENT"
+    },
+    {
+      "at": 1788500000000,
+      "text": "Alan pulled Bea — CHEF FOR A DAY from a Standard Pack.",
+      "setId": 1,
+      "playerId": 1,
+      "type": "TABLE_EVENT"
+    },
+    {
+      "at": 1788500000000,
+      "text": "Alan pulled Bea — CHEF FOR A DAY from a Standard Pack.",
+      "setId": 1,
+      "playerId": 1,
+      "type": "TABLE_EVENT"
+    },
+    {
+      "at": 1788500000000,
+      "text": "Set 1 finalized: 800 desire, 3200 C paid, 8 bidder packs.",
+      "setId": 1,
+      "playerId": 1,
+      "type": "TABLE_EVENT"
+    },
+    {
+      "at": 1788500000000,
+      "text": "Demo table loaded: 8 friends, 24 requests, 800 C each as a starting bankroll.",
+      "setId": 1,
+      "playerId": 1,
+      "type": "TABLE_EVENT"
+    }
+  ],
+  "weekly": [],
+  "ids": {
+    "player": 9,
+    "set": 2,
+    "design": 25,
+    "instance": 4,
+    "pack": 9,
+    "ledger": 54
+  },
+  "ui": {
+    "tab": "setup",
+    "acting": 1,
+    "blur": false,
+    "sound": true,
+    "setId": 1,
+    "marketSort": "demand"
+  }
+}
