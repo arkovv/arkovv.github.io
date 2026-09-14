@@ -663,7 +663,7 @@ class Handler(SimpleHTTPRequestHandler):
             return
         # Serve only application assets; database backups and test files stay private.
         assets = {"/", "/index.html", "/styles.css", "/state.js", "/validation.js", "/persistence.js", "/engine.js", "/views.js", "/actions.js", "/enhancements.js", "/app.js", "/card-visuals.js", "/alik-emblem.png"}
-        assets.update({'/auth.js', '/site-config.js', '/firebase-client.js', '/cloud-store.mjs', '/session-client.mjs'})
+        assets.update({'/auth.js', '/player-view.js', '/site-config.js', '/firebase-client.js', '/cloud-store.mjs', '/session-client.mjs'})
         if route not in assets:
             self.send_error(404)
             return

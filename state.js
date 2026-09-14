@@ -33,6 +33,8 @@ const CFG_LABELS = {
 
 const KEY = "friendsCardsLocal.v1";
 let S = null;
+let accountSession = null;
+function isPlayer(){ return accountSession?.role === 'player'; }
 
 function blankState(){
   return {

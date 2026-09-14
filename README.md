@@ -2,13 +2,13 @@
 
 A shared card game for a small group of friends. GitHub Pages hosts the interface; Firebase's Spark plan supplies anonymous sessions and Firestore storage. The deployed app needs no Python server.
 
-This version has a simple admin username/password screen and the existing Setup, Auction, Shop, Public Market, Cards, and Players screens. Player accounts and the reduced player interface have **not** been implemented yet.
+This version has username/password login for administrators and players. Administrators retain the existing Setup, Auction, Shop, Public Market, Cards, and Players screens. Players get a smaller view for their cards, pack purchases/openings, card use and inspection, and direct trades.
 
 ## Finish setup
 
-Follow [HOSTING.md](HOSTING.md). The public Firebase configuration is filled in. Before deployment, publish `firestore.rules` and create the two admin records described in the guide.
+Follow [HOSTING.md](HOSTING.md). The public Firebase configuration is filled in. Before deployment, publish `firestore.rules` and create the account records described in the guide.
 
-The admin username is `arkov`; use the password provided when setting up this project. No emails or Firebase admin keys are involved. The browser hashes the normalized username, a newline, and the password. Firestore rules check that hash against a private account record before approving the browser session. Rules also enforce the account's admin role for table access. Anonymous authentication alone grants no game access.
+The admin username is `arkov`; use the password provided when setting up this project. No emails or Firebase admin keys are involved. The browser hashes the normalized username, a newline, and the password. Firestore rules check that hash against a private account record before approving the browser session, then load the protected admin or player profile. Anonymous authentication alone grants no game access.
 
 Account hashes are credentials: they belong only in protected Firestore documents and ignored local setup files. A session expires after 12 hours; signing out deletes it. Disabling an account or changing its hash revokes its existing sessions on their next request. This lightweight login has no built-in password-guess throttling.
 
@@ -16,7 +16,7 @@ Account hashes are credentials: they belong only in protected Firestore document
 
 The table is stored at `tables/main` as JSON with a revision number. Saves use a transaction: if another tab has saved since this tab loaded, editing pauses instead of replacing that newer table. Export the unsaved copy and reload to reconcile the changes. Use one active editing tab.
 
-The frontend limits table JSON to 900 KB, below Firestore's 1 MiB document limit. There is no automatic online backup service. Export JSON backups periodically; the browser also retains pending changes and a previous-table copy for replacement operations.
+The frontend limits table JSON to 900 KB, below Firestore's 1 MiB document limit. The trusted group shares one table document; player restrictions are enforced by the player interface, while Firestore restricts table access to approved accounts. Export JSON backups periodically; the browser also retains pending changes and a previous-table copy for replacement operations.
 
 To migrate the existing local SQLite table, run `python scripts/export_legacy.py`, then import the generated file through Setup on the hosted app. Exports stay in the ignored `private-exports/` folder. This migration is never run automatically on the hosted site.
 

@@ -18,18 +18,18 @@
 
 ## Deliberate limitations
 
-The earlier convenience-only gate has been replaced. Firestore rules now verify a submitted hash against privateAccounts, approve a session tied to the caller's Firebase UID, and require a protected accountProfiles admin role for table reads/writes. Accepted hashes and the requested password are removed from publishable source and tests. The hash itself is a reusable credential and the lightweight scheme has no built-in guessing throttle, as accepted for this live test.
+The earlier convenience-only gate has been replaced. Firestore rules now verify a submitted hash against privateAccounts, approve a session tied to the caller's Firebase UID, and require a protected accountProfiles admin or linked-player role for table reads/writes. Accepted hashes and real passwords are removed from publishable source and tests. The hash itself is a reusable credential and the lightweight scheme has no built-in guessing throttle, as accepted for this live test.
 
-Only the admin interface exists. There are no player accounts, restricted player views, real-time subscriptions, automatic cloud backups, or transaction-based multi-player actions yet. One active editing tab is recommended; conflicts are detected rather than merged.
+The player interface is restricted to the linked player's cards, packs, card use/inspection, and trades. Player actions reload the latest table revision before saving. There are no real-time subscriptions or automatic cloud backups. The trusted group shares one JSON document, so Firestore authorizes the whole document after login and the client applies player action limits. Conflicting saves are detected rather than merged.
 
 Legacy Python server/authentication code remains for local data maintenance and its tests, but no browser path depends on it and it is excluded from Pages output.
 
 ## Verification boundary
 
-Core tests cover gameplay regression, JSON roundtrips, revision conflicts, oversize payloads, old-format migration, corrupt data, and failed-write retry. Browser tests cover login, reload, missing config, all six screens, desktop/mobile layout, export/import/restore, save failures, and edits during saves.
+Core tests cover gameplay regression, JSON roundtrips, revision conflicts, oversize payloads, old-format migration, corrupt data, and failed-write retry. Browser tests cover admin and player login, reload, missing config, admin screens, player cards/packs/trades, desktop/mobile layout, export/import/restore, save failures, and edits during saves.
 
-Browser cloud calls are simulated, and the actual Firestore rules are separately tested in Google's local Firestore emulator. The complete Firebase web config is present. Your live project still needs the rules and private account/profile records from HOSTING.md. Nothing has been pushed or deployed by this audit.
+Browser cloud calls are simulated, and the actual Firestore rules are separately tested in Google's local Firestore emulator. The complete Firebase web config is present. The live project needs the matching rules and private account/profile records from HOSTING.md.
 
 Audit run results: gameplay regression, cloud-store tests, login and desktop/mobile suites, repository-subpath artifact loading, and legacy Python tests passed. The private SQLite export passed the frontend's import validator. The release build now has complete public configuration.
 
-The rules emulator verifies: anonymous strangers and unauthenticated requests denied; private hash reads/listing denied; incorrect credentials denied; role injection and writes to another user's session denied; valid admin login/read/write succeeds; player access denied; revoked and expired sessions denied; logout revokes access. Run `node tests/firestore-rules.test.mjs` against a local emulator on port 8788 started with `firestore.rules` and project `demo-friends-cards`.
+The rules emulator verifies: anonymous strangers and unauthenticated requests denied; private hash reads/listing denied; incorrect credentials denied; role injection and writes to another user's session denied; valid admin and linked-player table access succeeds; only an admin can provision player-only accounts; revoked and expired sessions denied; logout revokes access. Run `node tests/firestore-rules.test.mjs` against a local emulator started with `firestore.rules` and project `demo-friends-cards`.

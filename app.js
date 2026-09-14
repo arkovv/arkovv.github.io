@@ -7,6 +7,8 @@ document.addEventListener("click", e => {
   if(!el || !S || backend!=="cloud") return;
   if(el.tagName === "SELECT" || el.tagName === "INPUT") return;
   const act = el.getAttribute("data-act");
+  if(isPlayer() && !['inspect','closeOverlay'].includes(act)) return;
+  if(isPlayer() && act==='inspect' && !S.instances.some(i=>i.id===Number(el.dataset.id)&&i.ownerId===accountSession.playerId)) return;
   const fn = ACTIONS[act];
   if(!fn) return;
   e.preventDefault();
@@ -22,6 +24,7 @@ document.addEventListener("click", e => {
 document.addEventListener("change", e => {
   if(!S || backend!=="cloud") return;
   const t = e.target;
+  if(isPlayer()) return;
 
   const act = t.getAttribute && t.getAttribute("data-act");
   if(act && ACTIONS[act]){ ACTIONS[act](t.getAttribute("data-id"), t); save(); render(); return; }
@@ -44,6 +47,7 @@ document.addEventListener("change", e => {
 document.addEventListener("input", e => {
   if(!S || backend!=="cloud") return;
   const t = e.target;
+  if(isPlayer()) return;
   const bidId = t.getAttribute && t.getAttribute("data-bid");
   const defId = t.getAttribute && t.getAttribute("data-def");
   if(!bidId && !defId) return;
@@ -107,17 +111,18 @@ document.getElementById("nav").addEventListener("click", e => {
   if(b) go(b.getAttribute("data-tab"));
 });
 document.getElementById("actingSel").addEventListener("change", e => {
+  if(isPlayer()) return;
   if(!S || backend!=='cloud') return;
   S.ui.acting = Number(e.target.value);
   save(); render();
 });
 document.getElementById("blurTgl").addEventListener("change", e => {
   if(!S || backend!=='cloud') return;
-  S.ui.blur = e.target.checked; save(); render();
+  S.ui.blur = e.target.checked; if(isPlayer())rememberPlayerUi();else save(); render();
 });
 document.getElementById("soundTgl").addEventListener("change", e => {
   if(!S || backend!=='cloud') return;
-  S.ui.sound = e.target.checked; save();
+  S.ui.sound = e.target.checked; if(isPlayer())rememberPlayerUi();else save();
 });
 document.addEventListener("keydown", e => {
   if(e.key === "Escape") closeOverlay();
@@ -136,6 +141,13 @@ async function boot(){
     const data=await cloud.readState();
     if(data !== null) validateTable(data);
     S=data !== null ? hydrate(data) : blankState(); backend='cloud';
+    if(isPlayer()){
+      if(!player(accountSession.playerId)) throw new Error('This login is not linked to a player in the table. Ask the host to check the player ID.');
+      preparePlayerUi();
+      render();flash('Connected to your collection');
+      return;
+    }
+    if(!TABS.some(t=>t[0]===S.ui.tab))S.ui.tab='setup';
     const empty=!S.players.length&&!S.sets.length;
     if(empty){
       try {

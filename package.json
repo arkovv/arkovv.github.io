@@ -5,6 +5,6 @@
     "build": "node scripts/build.mjs",
     "build:pages": "node scripts/build.mjs --require-config",
     "test": "node tests/regression.cjs && node --test tests/cloud-store.test.mjs tests/session-client.test.mjs",
-    "test:browser": "node tests/auth-browser.cjs && node tests/browser.cjs && node tests/pages-browser.cjs"
+    "test:browser": "node tests/auth-browser.cjs && node tests/browser.cjs && node tests/pages-browser.cjs && node tests/player-browser.cjs"
   }
 }

@@ -1,6 +1,6 @@
 # Firebase and GitHub Pages setup
 
-Complete these steps for Firebase project **cardgame-bfa88**. Stay on the **Spark** plan. This stage supports one administrator using the existing table controls; player logins and simultaneous player actions come later.
+Complete these steps for Firebase project **cardgame-bfa88**. Stay on the **Spark** plan. The hosted app supports the existing administrator controls plus restricted player screens for cards, packs, card use, and trading.
 
 ## 1. Register the web app and copy its public config
 
@@ -20,7 +20,7 @@ Open **Build → Firestore Database → Create database**. Use **Standard editio
 
 Open **Firestore Database → Rules**, replace the entire editor with `firestore.rules`, and click **Publish**. This replaces the broader starter rules that allowed all collections.
 
-These rules require a valid credential-approved session and an admin role to read or save `tables/main`. Anonymous strangers cannot access the table. Browsers cannot read the private account whitelist, modify profiles, or list/read other people's sessions.
+These rules require a valid credential-approved session and an admin or linked-player profile to read or save `tables/main`. Anonymous strangers cannot access the table. Browsers cannot read the private account whitelist or list/read other people's sessions. A signed-in administrator can provision player credentials and player-only profiles, but cannot replace their own credential or create another administrator.
 
 In **Firestore → Data**, create these two documents using the console (console administrators can create them even though browser writes are denied):
 
@@ -33,7 +33,9 @@ The matching hash for your requested testing credentials is prepared in **`priva
 
 For a new credential, run `python scripts/account_record.py`. It asks for a username and password and writes an ignored setup file. It does not print or store the password. The exact algorithm is SHA-256 of lowercase/trimmed username, a newline, and the unchanged password. Never place accepted hashes in `site-config.js` or the rules file.
 
-Do not manually create session documents. The app creates them after successful rule verification. Sessions last 12 hours. Sign out deletes the session; disabling the account or changing its hash revokes access on the next database request. These rules currently allow table access only to administrators; player screens and player-specific data permissions come later.
+Do not manually create session documents. The app creates them after successful rule verification. Sessions last 12 hours. Sign out deletes the session; disabling the account or changing its hash revokes access on the next database request.
+
+Each player login needs `privateAccounts/<username>` with `enabled: true` and its 64-character password hash, plus `accountProfiles/<username>` with `role: "player"` and `playerId` set to that player's numeric ID in the table. Keep the hash out of Git. The included ignored provisioning utility shows the exact record format. The current trusted-group design stores the game in one shared JSON document, so Firestore authorizes approved members at the document level and the app limits which actions appear in player mode.
 
 For the optional index optimization, open **Indexes → Single field → Add exemption**: collection ID `tables`, field path `stateJson`, disable all indexes for that field. The app reads that document directly and never queries the JSON field. Alternatively, if you already use Firebase CLI, the included `.firebaserc`, `firebase.json`, and `firestore.indexes.json` support:
 
@@ -77,6 +79,6 @@ For a new empty table, add a player instead. The document is created on the **fi
 - **Another tab saved a newer table:** export the unsaved copy, reload to load the latest table, then reconcile. Use one active editing tab.
 - **Table size limit:** export the table and ask for the multi-document storage upgrade; the app refuses JSON above 900 KB to stay below Firestore's 1 MiB document limit.
 
-The public web config is complete. The rules have been tested in a local Firestore emulator. A real login on your Firebase project still requires you to publish those rules and enter the private account/profile records; the local emulator tests do not change your live project.
+The public web config is complete. The rules have been tested in a local Firestore emulator. A real login on your Firebase project still requires the same rules and matching private account/profile records in the live default database; local emulator tests do not change your live project.
 
 References: [Anonymous Authentication](https://firebase.google.com/docs/auth/web/anonymous-auth), [Firestore rules](https://firebase.google.com/docs/firestore/security/get-started), [Firestore limits](https://firebase.google.com/docs/firestore/quotas), [GitHub Pages configuration](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).

@@ -16,9 +16,25 @@ service cloud.firestore {
       return approvedSession()
         && get(/databases/$(database)/documents/accountProfiles/$(session.username)).data.role == 'admin';
     }
-    // Set these records only through the Firebase Console. Browsers cannot read hashes.
+    function tableMember() {
+      let session = get(/databases/$(database)/documents/sessions/$(request.auth.uid)).data;
+      let profile = get(/databases/$(database)/documents/accountProfiles/$(session.username)).data;
+      return approvedSession() && (profile.role == 'admin'
+        || (profile.role == 'player' && profile.playerId is int && profile.playerId > 0));
+    }
+    function playerUsername(username) {
+      return username.matches('^[a-z0-9_-]{1,32}$')
+        && username != get(/databases/$(database)/documents/sessions/$(request.auth.uid)).data.username;
+    }
+    // Only a currently authenticated admin can provision player credentials.
+    // Browsers can never read credential hashes.
     match /privateAccounts/{username} {
-      allow read, write: if false;
+      allow create, update: if signedIn() && admin() && playerUsername(username)
+        && request.resource.data.keys().hasOnly(['enabled', 'passwordHash'])
+        && request.resource.data.enabled is bool
+        && request.resource.data.passwordHash is string
+        && request.resource.data.passwordHash.matches('^[0-9a-f]{64}$');
+      allow read, delete: if false;
     }
     match /sessions/{uid} {
       allow get, delete: if signedIn() && request.auth.uid == uid;
@@ -34,11 +50,16 @@ service cloud.firestore {
     match /accountProfiles/{username} {
       allow get: if signedIn() && approvedSession()
         && get(/databases/$(database)/documents/sessions/$(request.auth.uid)).data.username == username;
-      allow write: if false;
+      allow create, update: if signedIn() && admin() && playerUsername(username)
+        && request.resource.data.keys().hasOnly(['role', 'playerId'])
+        && request.resource.data.role == 'player'
+        && request.resource.data.playerId is int && request.resource.data.playerId > 0;
     }
     match /tables/main {
-      allow get: if signedIn() && admin();
-      allow create, update: if signedIn() && admin()
+      // Game state is shared among approved friends. Player action limits live in
+      // the app; account credentials and roles remain console-controlled.
+      allow get: if signedIn() && tableMember();
+      allow create, update: if signedIn() && tableMember()
         && request.resource.data.keys().hasOnly(['stateJson', 'revision', 'updatedAt'])
         && request.resource.data.stateJson is string
         && request.resource.data.stateJson.size() <= 900000

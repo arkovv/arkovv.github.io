@@ -1,12 +1,13 @@
 /* Admin identity is verified by Firestore rules, never by a local role flag. */
 let adminSession = false;
 function showLogin(message = '') {
-  backend = 'blocked'; S = null; adminSession = false;
+  backend = 'blocked'; S = null; adminSession = false; accountSession = null;
+  document.body.classList.remove('player-mode');
   document.body.classList.add('signed-out');
   document.getElementById('overlayHost').replaceChildren();
   document.getElementById('view').innerHTML = `<section class="login-panel">
-    <p class="login-eyebrow">FRIENDS CARDS</p><h1>Admin sign in</h1>
-    <p>Manage your table, players, and cards.</p>
+    <p class="login-eyebrow">FRIENDS CARDS</p><h1>Welcome to the table</h1>
+    <p>Your cards. Your packs. Your next trade.</p>
     <form id="adminLogin"><label for="loginUser">Username</label>
     <input id="loginUser" name="username" autocomplete="username" required>
     <label for="loginPassword">Password</label>
@@ -21,10 +22,11 @@ function showLogin(message = '') {
       const cloud = await connectFirebase();
       const profile = await cloud.login(form.username.value, form.password.value);
       form.password.value = '';
-      if (profile.role !== 'admin') {
+      if (!validAccountProfile(profile)) {
         await cloud.logout();
-        throw new Error('This account is not an administrator. The player view is not available yet.');
+        throw new Error('This account does not have a valid player or admin profile.');
       }
+      accountSession = profile;
       adminSession = true;
       await boot();
     } catch (error) {
@@ -36,7 +38,8 @@ function showLogin(message = '') {
 async function restoreLogin() {
   try {
     const profile = await (await connectFirebase()).currentSession();
-    if (profile?.role !== 'admin') { showLogin(); return; }
+    if (!validAccountProfile(profile)) { showLogin(); return; }
+    accountSession = profile;
     adminSession = true;
     await boot();
   } catch (_) { showLogin(); }
@@ -48,3 +51,6 @@ document.getElementById('adminLogout').addEventListener('click', async () => {
     showLogin();
   } catch (_) { flash('Could not sign out online. Check your connection and retry.', true); }
 });
+function validAccountProfile(profile){
+  return profile?.role === 'admin' || (profile?.role === 'player' && Number.isSafeInteger(profile.playerId) && profile.playerId > 0);
+}

@@ -22,6 +22,8 @@ function noticeHtml(){
 }
 
 function render(){
+  if(isPlayer()){ renderPlayerView(); return; }
+  document.querySelector('label[for="actingSel"]').textContent='ACTING AS';
   document.body.classList.toggle("blur", !!S.ui.blur);
   renderHeader();
   const view = document.getElementById("view");
@@ -85,7 +87,7 @@ function renderHeader(){
   document.getElementById("soundTgl").checked = !!S.ui.sound;
 }
 
-function go(tab){ if(!S || backend!=='cloud')return; S.ui.tab = tab; save(); render(); window.scrollTo(0,0); }
+function go(tab){ if(!S || backend!=='cloud')return; if(isPlayer()&&!PLAYER_TABS.some(t=>t[0]===tab))return; S.ui.tab = tab; if(isPlayer()) rememberPlayerUi(); else save(); render(); window.scrollTo(0,0); }
 
 /* ============================================================
    7. SETUP VIEW — players, economy config, sets, card designs
@@ -887,12 +889,13 @@ function inspectCard(id){
     "<tr><td>Times traded</td><td>" + i.tradeCount + "</td></tr>" +
     (i.note ? "<tr><td>Note</td><td>" + esc(i.note) + "</td></tr>" : "") +
     "</tbody></table>";
-  if(i.state === "ACTIVE" || i.state === "REDEEMED"){
+  if(!isPlayer() && (i.state === "ACTIVE" || i.state === "REDEEMED")){
     html += '<div class="row" style="margin-top:16px">';
     if(i.state === "ACTIVE")   html += '<button class="primary" data-act="redeemCard" data-id="' + i.id + '">Mark the promise redeemed</button>';
     if(i.state === "REDEEMED") html += '<button data-act="unredeemCard" data-id="' + i.id + '">Return to ACTIVE</button>';
     html += "</div>";
   }
+  if(isPlayer() && i.ownerId===accountSession.playerId && i.state==='ACTIVE') html+='<button class="primary" data-player-act="use" data-id="'+i.id+'">Use this card</button>';
   showModal(wrapCardInspection(i,html));
 }
 

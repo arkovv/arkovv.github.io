@@ -549,3 +549,37 @@ body.signed-out > header, body.signed-out > footer { display: none; }
 .login-panel input { width: 100%; min-height: 44px; }
 .login-panel button { margin-top: 12px; min-height: 44px; }
 #loginMessage { min-height: 24px; overflow-wrap: anywhere; }
+.player-mode #blurTgl, .player-mode label:has(#blurTgl) { display:none; }
+.player-mode #actingSel { appearance:none; border:0; padding:0; background:none; opacity:1; color:var(--text); font-weight:700; }
+.player-mode .brand small { font-size:10px; }
+.player-welcome { display:flex; justify-content:space-between; align-items:center; gap:24px; padding:36px 0 24px; }
+.player-welcome h1 { font-size:clamp(32px,5vw,54px); margin:12px 0; }
+.player-welcome p, .player-section p { color:var(--muted); }
+.player-balance { min-width:160px; text-align:right; }
+.player-balance>span { display:block; font-size:10px; letter-spacing:.15em; color:var(--muted); }
+.player-balance strong { display:block; font-size:42px; color:var(--accent); }
+.player-balance small { font-size:16px; }
+.player-summary { display:flex; flex-wrap:wrap; gap:24px; align-items:center; padding:16px 0; margin-bottom:28px; border-top:1px solid var(--line); border-bottom:1px solid var(--line); color:var(--muted); }
+.player-summary b { color:var(--text); margin-right:4px; }
+.player-summary button { margin-left:auto; }
+.player-section { margin:28px 0 20px; }
+.player-section h2 { font-size:26px; }
+.player-filters { display:flex; gap:12px; margin-bottom:24px; }
+.player-filters input { flex:1; min-width:0; }
+.player-filters select { max-width:180px; }
+.player-cardgrid { margin-bottom:36px; }
+.player-pack-panel>.primary { width:100%; }
+.player-pack-panel details { margin-top:20px; }
+.player-hint { font-size:12px; color:var(--muted); margin-top:12px; }
+.player-trade { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:20px 0; border-bottom:1px solid var(--line); }
+.player-trade:last-child { border-bottom:0; }
+.player-trade p { overflow-wrap:anywhere; }
+@media(max-width:600px){
+  .player-welcome { align-items:flex-start; gap:12px; }
+  .player-balance { min-width:90px; }
+  .player-balance strong { font-size:32px; }
+  .player-summary { gap:12px; font-size:12px; }
+  .player-summary button { margin-left:0; width:100%; }
+  .player-trade { display:block; }
+  .player-trade .row { margin-top:14px; }
+}

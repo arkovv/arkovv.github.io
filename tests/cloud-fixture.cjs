@@ -1,10 +1,10 @@
 const fs=require('node:fs'),path=require('node:path');
 // Replace only the network boundary in tests. Production has no adapter override.
-module.exports=async function installCloudFixture(page,initial){
+module.exports=async function installCloudFixture(page,initial,profile={username:'arkov',role:'admin'}){
  const state={value:structuredClone(initial),fail:false,delay:0,profile:null};
  await page.exposeFunction('__testLogin',(_username,password)=>{
    if(password!=='fixture-password-only')throw Error('Incorrect username or password.');
-   state.profile={username:'arkov',role:'admin'};return state.profile;
+   state.profile=profile;return state.profile;
  });
  await page.exposeFunction('__testSession',()=>state.profile);
  await page.exposeFunction('__testLogout',()=>{state.profile=null;});

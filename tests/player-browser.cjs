@@ -1,0 +1,48 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),{spawn}=require('node:child_process');
+const {chromium}=require(process.env.PLAYWRIGHT_PATH||path.resolve(path.dirname(process.execPath),'../node_modules/playwright'));
+const root=path.resolve(__dirname,'..'),work=fs.mkdtempSync(path.join(__dirname,'browser-player-'));
+const server=spawn('python',['-B',path.join(__dirname,'serve_fixture.py'),work],{cwd:root,windowsHide:true});
+let browser;
+(async()=>{
+ const url=await new Promise((resolve,reject)=>{server.stdout.on('data',d=>{const m=d.toString().match(/http:\/\/127\.0\.0\.1:\d+/);if(m)resolve(m[0]);});server.on('error',reject);});
+ browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH||'C:/Program Files/Google/Chrome/Application/chrome.exe'});
+ const page=await browser.newPage({viewport:{width:1440,height:1000}}),errors=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('dialog',dialog=>dialog.accept('Fulfilled at the table'));
+ const initial=JSON.parse(fs.readFileSync(path.join(__dirname,'fixture.json'),'utf8'));initial.players[1].name='Azat';initial.instances[0].ownerId=2;
+ const cardId=initial.instances[0].id,packId=initial.packs.find(p=>p.ownerId===2&&!p.opened).id;
+ const cloud=await require('./cloud-fixture.cjs')(page,initial,{username:'azat',role:'player',playerId:2});
+ async function login(target,username){await target.goto(url);await target.locator('#loginUser').fill(username);await target.locator('#loginPassword').fill('fixture-password-only');await target.locator('#adminLogin button').click();await target.waitForFunction(()=>S&&backend==='cloud');}
+ await login(page,'azat');
+ assert.equal(await page.locator('[data-tab="setup"]').count(),0);assert.equal(await page.locator('[data-tab="players"]').count(),0);
+ assert.equal(await page.locator('#actingSel').isDisabled(),true);
+ assert.equal(await page.locator('.coll').count(),1);
+ await page.screenshot({path:path.join(work,'azat-cards-desktop.png'),animations:'disabled'});
+ await page.locator('.coll').click();await page.locator('[data-card-flip]').click();await page.locator('[data-player-act="use"]').click();
+ await page.waitForFunction(()=>!playerBusy&&!saveDirty&&!saveInFlight);
+ assert.equal(cloud.value.instances.find(i=>i.id===cardId).state,'REDEEMED');
+ await page.locator('[data-tab="packs"]').click();
+ await page.emulateMedia({reducedMotion:'reduce'});
+ await page.locator('[data-player-act="open"][data-id="'+packId+'"]').click();
+ await page.waitForFunction(()=>!playerBusy&&!saveDirty&&!saveInFlight);
+ assert.equal(cloud.value.packs.find(p=>p.id===packId).opened,true);
+ await page.keyboard.press('Escape');
+ const credits=cloud.value.players[1].credits;
+ await page.locator('[data-player-act="buy"]').click();await page.waitForFunction(()=>!playerBusy&&!saveDirty&&!saveInFlight);
+ assert.ok(cloud.value.players[1].credits<credits);await page.keyboard.press('Escape');
+ await page.screenshot({path:path.join(work,'azat-packs-desktop.png'),animations:'disabled'});
+ await page.locator('[data-tab="trading"]').click();await page.locator('[data-player-filter="tradePartner"]').selectOption('3');
+ await page.locator('#giveItem').selectOption('card:'+cardId);await page.locator('#receiveCredits').fill('10');
+ await page.locator('[data-player-act="offer"]').click();await page.waitForFunction(()=>!playerBusy&&!saveDirty&&!saveInFlight);
+ const trade=cloud.value.trades[0];assert.equal(trade.status,'PENDING');assert.equal(cloud.value.instances.find(i=>i.id===cardId).ownerId,2);
+ await page.screenshot({path:path.join(work,'azat-trading-desktop.png'),animations:'disabled'});
+ await page.setViewportSize({width:390,height:844});
+ for(const tab of ['cards','packs','trading']){await page.locator('[data-tab="'+tab+'"]').click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,tab+' overflows');await page.screenshot({path:path.join(work,'azat-'+tab+'-mobile.png'),animations:'disabled'});}
+ const recipient=await browser.newPage();recipient.on('pageerror',e=>errors.push(e.message));
+ const received=await require('./cloud-fixture.cjs')(recipient,cloud.value,{username:'friend',role:'player',playerId:3});
+ const oldCredits=received.value.players[2].credits;
+ await login(recipient,'friend');await recipient.locator('[data-tab="trading"]').click();await recipient.locator('[data-player-act="accept"]').click();
+ await recipient.waitForFunction(()=>!playerBusy&&!saveDirty&&!saveInFlight);
+ assert.equal(received.value.trades[0].status,'ACCEPTED');assert.equal(received.value.instances.find(i=>i.id===cardId).ownerId,3);assert.equal(received.value.players[2].credits,oldCredits-10);
+ await page.reload();await page.waitForFunction(()=>S&&backend==='cloud');assert.equal(await page.evaluate(()=>S.ui.acting),2);
+ assert.deepEqual(errors,[]);console.log('PASS: player identity, own cards, use, open/buy packs, offer/accept exchange, reload, all mobile tabs. Screenshots: '+work);
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});

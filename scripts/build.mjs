@@ -4,7 +4,7 @@ import path from 'node:path';
 import vm from 'node:vm';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = path.join(root, '_site');
-const assets = ['index.html','styles.css','state.js','validation.js','persistence.js','engine.js','views.js','actions.js','enhancements.js','card-visuals.js','app.js','auth.js','firebase-client.js','cloud-store.mjs','session-client.mjs','site-config.js','alik-emblem.png','ART-CREDITS.md'];
+const assets = ['index.html','styles.css','state.js','validation.js','persistence.js','engine.js','views.js','actions.js','enhancements.js','card-visuals.js','app.js','auth.js','player-view.js','firebase-client.js','cloud-store.mjs','session-client.mjs','site-config.js','alik-emblem.png','ART-CREDITS.md'];
 if (process.argv.includes('--require-config')) {
   const context = {window:{}};
   vm.runInNewContext(await readFile(path.join(root,'site-config.js'),'utf8'),context);
