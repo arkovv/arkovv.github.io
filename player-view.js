@@ -1,5 +1,6 @@
-const PLAYER_TABS=[['cards','My Cards'],['packs','Packs'],['trading','Trading']];
+const PLAYER_TABS=[['cards','My Cards'],['catalog','All Cards'],['packs','Packs'],['trading','Trading']];
 let playerBusy=false;
+let playerTradeDraft={give:[],receive:[]};
 function rememberPlayerUi(){
   try{sessionStorage.setItem('friendsCards.playerUi.'+accountSession.username,JSON.stringify(S.ui));}catch(_){}
 }
@@ -39,10 +40,33 @@ function renderPlayerView(){
   let html='<section class="player-welcome"><div><div class="eyebrow">YOUR SEAT AT THE TABLE</div><h1>Hey, '+esc(me.name)+'.</h1><p>A collection of promises. Make your next move.</p></div><div class="player-balance"><span>YOUR BALANCE</span><strong>'+me.credits.toLocaleString()+'<small> C</small></strong></div></section>';
   html+='<div class="player-summary"><span><b>'+cards.length+'</b> collected cards</span><span><b>'+active+'</b> ready to use</span><span><b>'+packs.length+'</b> unopened packs</span><button data-player-act="refresh" class="ghost">Refresh table</button></div>';
   html+=noticeHtml();
-  if(S.ui.tab==='packs')html+=playerPacksView();
+  if(S.ui.tab==='catalog')html+=playerCatalogView();
+  else if(S.ui.tab==='packs')html+=playerPacksView();
   else if(S.ui.tab==='trading')html+=playerTradingView();
   else html+=playerCardsView();
   const view=document.getElementById('view');view.innerHTML=html;improveAccessibility(view);
+}
+function playerCatalogView(){
+  const q=(S.ui.catalogQ||'').toLowerCase(),owner=S.ui.catalogOwner||'ALL',set=S.ui.catalogSet||'ALL',state=S.ui.catalogState||'ALL',sort=S.ui.catalogSort||'new';
+  const list=S.instances.filter(i=>{
+    if(i.state==='CONSUMED'&&state!=='CONSUMED')return false;
+    if(owner!=='ALL'&&i.ownerId!==Number(owner))return false;
+    if(set!=='ALL'&&i.setId!==Number(set))return false;
+    if(state!=='ALL'&&i.state!==state)return false;
+    const d=findDesign(i.designId)?.design;
+    return !q||(d?.title+' '+d?.meme+' '+d?.request+' '+playerName(d?.authorId)).toLowerCase().includes(q);
+  });
+  list.sort((a,b)=>sort==='float'?a.floatValue-b.floatValue:sort==='catalog'?a.catalog-b.catalog:sort==='title'?(findDesign(a.designId)?.design.title||'').localeCompare(findDesign(b.designId)?.design.title||''):b.createdAt-a.createdAt);
+  let html='<div class="player-section"><div><h2>All cards</h2><p>Browse every card instance at the table and inspect its request, owner, finish, and history.</p></div></div><div class="panel player-catalog-filters">';
+  html+='<label>Search<input data-player-filter="catalogQ" value="'+esc(S.ui.catalogQ||'')+'" placeholder="Title, person, request"></label>';
+  html+='<label>Owner<select data-player-filter="catalogOwner"><option value="ALL">Everyone</option>'+S.players.map(p=>'<option value="'+p.id+'"'+(owner===String(p.id)?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label>';
+  html+='<label>Set<select data-player-filter="catalogSet"><option value="ALL">All sets</option>'+S.sets.map(s=>'<option value="'+s.id+'"'+(set===String(s.id)?' selected':'')+'>Set '+s.ordinal+'</option>').join('')+'</select></label>';
+  html+='<label>State<select data-player-filter="catalogState">'+['ALL','ACTIVE','REDEEMED','CONSUMED'].map(value=>'<option'+(state===value?' selected':'')+'>'+value+'</option>').join('')+'</select></label>';
+  html+='<label>Sort<select data-player-filter="catalogSort">'+[['new','Newest'],['float','Lowest float'],['catalog','Lowest catalog'],['title','Title']].map(([value,label])=>'<option value="'+value+'"'+(sort===value?' selected':'')+'>'+label+'</option>').join('')+'</select></label><div class="catalog-count"><b>'+list.length+'</b><small>shown</small></div></div>';
+  if(!list.length)return html+'<div class="empty">No cards match these filters.</div>';
+  html+='<div class="cardgrid player-cardgrid">';
+  for(const i of list)html+='<div class="coll collectible celestial" data-foil data-act="inspect" data-id="'+i.id+'" style="'+visualStyle(i)+'">'+collectibleFront(i)+'</div>';
+  return html+'</div>';
 }
 function playerCardsView(){
   const q=(S.ui.playerSearch||'').toLowerCase(),filter=S.ui.playerCardState||'ALL';
@@ -70,30 +94,58 @@ function playerPacksView(){
   for(const p of myPacks())html+='<div class="packrow"><div class="grow"><span class="ptype '+p.type+'">'+esc(p.type)+'</span><h3>'+esc(p.authorId?playerName(p.authorId)+' pack':'Legacy pack')+'</h3><small>Card chance '+pct(p.odds.hit,2)+'</small><details><summary>See odds</summary>'+oddsTable(p.odds,getSet(p.setId))+'</details></div><button class="primary" data-player-act="open" data-id="'+p.id+'">Open pack</button></div>';
   return html+'</section></div>';
 }
+function tradeItems(trade,side){
+  const plural=trade[side+'Items'];
+  if(Array.isArray(plural))return plural;
+  const legacy=trade[side+'Item'];
+  return legacy?[legacy]:[];
+}
+function tradeItemTile(value,side,selected=false){
+  const [kind,id]=value.split(':');
+  const item=(kind==='card'?S.instances:S.packs).find(entry=>entry.id===Number(id));
+  if(!item)return '';
+  const label=playerItemLabel(value),detail=kind==='card'?(findDesign(item.designId)?.design.request||'Card promise'):(item.type+' sealed pack');
+  return '<button type="button" class="trade-inventory-item '+kind+(selected?' selected':'')+'" draggable="true" data-trade-item="'+esc(value)+'" data-trade-side="'+side+'" '+(selected?'data-trade-remove':'data-trade-add')+'="'+side+'"><span class="trade-item-kind">'+(kind==='card'?'CARD':'PACK')+'</span><b>'+esc(label)+'</b><small>'+esc(detail)+'</small></button>';
+}
+function tradeSideSummary(items,credits){
+  const labels=items.map(playerItemLabel);
+  return (labels.length?labels.join(', '):'No items')+' + '+credits+' C';
+}
+function cleanTradeDraft(me,partner){
+  playerTradeDraft.give=[...new Set(playerTradeDraft.give)].filter(value=>playerItems(me.id).includes(value));
+  playerTradeDraft.receive=[...new Set(playerTradeDraft.receive)].filter(value=>playerItems(partner.id).includes(value));
+}
 function playerTradingView(){
   const me=acting(),others=S.players.filter(p=>p.id!==me.id),partner=others.find(p=>p.id===Number(S.ui.tradePartner))||others[0];
   const trades=(S.trades||[]).filter(t=>t.from===me.id||t.to===me.id).slice().reverse();
-  let html='<div class="player-section"><div><h2>Trading</h2><p>Make an offer. Both sides move together when your friend accepts.</p></div></div>';
+  let html='<div class="player-section"><div><h2>Trade with friends</h2><p>Pick a friend, build both sides of the offer from the two inventories, then add credits if needed.</p></div></div>';
   if(partner){
-    const options=owner=>'<option value="">No item</option>'+playerItems(owner).map(id=>'<option value="'+id+'">'+esc(playerItemLabel(id))+'</option>').join('');
-    html+='<section class="panel"><h3>Make an offer</h3><label>Trade with<select data-player-filter="tradePartner">'+others.map(p=>'<option value="'+p.id+'"'+(p.id===partner.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label><div class="split"><div><h3>You give</h3><label>Card or pack<select id="giveItem">'+options(me.id)+'</select></label><label>Credits<input id="giveCredits" type="number" min="0" max="'+me.credits+'" value="0"></label></div><div><h3>You receive</h3><label>Card or pack<select id="receiveItem">'+options(partner.id)+'</select></label><label>Credits<input id="receiveCredits" type="number" min="0" value="0"></label></div></div><button class="primary" data-player-act="offer" data-id="'+partner.id+'">Send offer</button><p class="player-hint">Items stay with their owners until the offer is accepted.</p></section>';
+    cleanTradeDraft(me,partner);
+    const inventory=(owner,side)=>{const selected=new Set(playerTradeDraft[side]);const items=playerItems(owner).filter(value=>!selected.has(value));return items.length?items.map(value=>tradeItemTile(value,side)).join(''):'<div class="trade-empty">No available items</div>';};
+    const tray=side=>playerTradeDraft[side].length?playerTradeDraft[side].map(value=>tradeItemTile(value,side,true)).join(''):'<div class="trade-drop-empty">Drop items here or tap them above</div>';
+    html+='<section class="panel steam-trade"><div class="trade-toolbar"><label>Trading with<select data-player-filter="tradePartner">'+others.map(p=>'<option value="'+p.id+'"'+(p.id===partner.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label><span>Items move only after '+esc(partner.name)+' accepts.</span></div>';
+    html+='<div class="trade-inventories"><section><div class="trade-pane-title"><h3>Your inventory</h3><span>'+playerItems(me.id).length+' items</span></div><div class="trade-item-grid">'+inventory(me.id,'give')+'</div></section><section><div class="trade-pane-title"><h3>'+esc(partner.name)+'\'s inventory</h3><span>'+playerItems(partner.id).length+' items</span></div><div class="trade-item-grid">'+inventory(partner.id,'receive')+'</div></section></div>';
+    html+='<div class="trade-offer-builder"><section><div class="trade-pane-title"><h3>You offer</h3><span>'+playerTradeDraft.give.length+' selected</span></div><div class="trade-dropzone" data-trade-drop="give">'+tray('give')+'</div><label class="trade-credit">Credits <input id="giveCredits" type="number" min="0" max="'+me.credits+'" value="0"><small>Available: '+me.credits+' C</small></label></section><div class="trade-swap" aria-hidden="true">&#8644;</div><section><div class="trade-pane-title"><h3>You request</h3><span>'+playerTradeDraft.receive.length+' selected</span></div><div class="trade-dropzone" data-trade-drop="receive">'+tray('receive')+'</div><label class="trade-credit">Credits <input id="receiveCredits" type="number" min="0" max="'+partner.credits+'" value="0"><small>'+esc(partner.name)+' has '+partner.credits+' C</small></label></section></div>';
+    html+='<div class="trade-submit"><p>'+playerTradeDraft.give.length+' of your items for '+playerTradeDraft.receive.length+' of theirs</p><button class="primary" data-player-act="offer" data-id="'+partner.id+'">Send trade offer</button></div></section>';
   }
-  html+='<section class="panel"><h2>Your offers</h2>';
-  if(!trades.length)html+='<div class="empty">No trades yet. Send your first offer above.</div>';
+  html+='<section class="panel trade-history"><h2>Your offers</h2>';
+  if(!trades.length)html+='<div class="empty">No trades yet. Build your first offer above.</div>';
   for(const t of trades){
-    const incoming=t.to===me.id;
-    html+='<article class="player-trade"><div><span class="eyebrow">'+esc(t.status)+'</span><h3>'+(incoming?'From '+esc(playerName(t.from)):'To '+esc(playerName(t.to)))+'</h3><p>'+esc(playerItemLabel(t.giveItem))+' + '+t.giveCredits+' C <span aria-label="in exchange for">↔</span> '+esc(playerItemLabel(t.receiveItem))+' + '+t.receiveCredits+' C</p></div>';
+    const incoming=t.to===me.id,give=tradeItems(t,'give'),receive=tradeItems(t,'receive');
+    html+='<article class="player-trade"><div><span class="eyebrow">'+esc(t.status)+'</span><h3>'+(incoming?'From '+esc(playerName(t.from)):'To '+esc(playerName(t.to)))+'</h3><p>'+esc(tradeSideSummary(give,t.giveCredits))+' <span aria-label="in exchange for">&#8596;</span> '+esc(tradeSideSummary(receive,t.receiveCredits))+'</p></div>';
     if(t.status==='PENDING')html+='<div class="row">'+(incoming?'<button class="primary" data-player-act="accept" data-id="'+t.id+'">Accept</button><button data-player-act="decline" data-id="'+t.id+'">Decline</button>':'<button data-player-act="cancel" data-id="'+t.id+'">Cancel</button>')+'</div>';
     html+='</article>';
   }
   return html+'</section>';
 }
-function checkedTradeItem(value,owner){
-  if(!value)return null;
-  const [kind,id]=value.split(':');
-  const item=(kind==='card'?S.instances:kind==='pack'?S.packs:[]).find(i=>i.id===Number(id));
-  if(!item||item.ownerId!==owner||(kind==='card'?item.state==='CONSUMED':item.opened))throw new Error('An item in this trade is no longer available.');
-  return item;
+function checkedTradeItems(values,owner){
+  if(!Array.isArray(values)||new Set(values).size!==values.length)throw new Error('The trade contains duplicate or invalid items.');
+  return values.map(value=>{
+    const [kind,id]=value.split(':');
+    const item=(kind==='card'?S.instances:kind==='pack'?S.packs:[]).find(entry=>entry.id===Number(id));
+    if(!item||item.ownerId!==owner||(kind==='card'?item.state==='CONSUMED':item.opened))throw new Error('An item in this trade is no longer available.');
+    return item;
+  });
 }
 function executePlayerTrade(action,id,inputs){
   const me=accountSession.playerId;
@@ -101,10 +153,12 @@ function executePlayerTrade(action,id,inputs){
   if(action==='offer'){
     const to=Number(id);if(to===me||!player(to))throw Error('Choose another player.');
     for(const amount of [inputs.giveCredits,inputs.receiveCredits])if(!Number.isSafeInteger(amount)||amount<0)throw Error('Credit amounts must be whole numbers, zero or greater.');
-    checkedTradeItem(inputs.giveItem,me);checkedTradeItem(inputs.receiveItem,to);
-    if(!inputs.giveItem&&!inputs.receiveItem&&!inputs.giveCredits&&!inputs.receiveCredits)throw Error('Add an item or credits to the offer.');
+    checkedTradeItems(inputs.giveItems,me);checkedTradeItems(inputs.receiveItems,to);
+    if(!inputs.giveItems.length&&!inputs.receiveItems.length&&!inputs.giveCredits&&!inputs.receiveCredits)throw Error('Add an item or credits to the offer.');
     if(player(me).credits<inputs.giveCredits)throw Error('You do not have enough credits.');
+    if(player(to).credits<inputs.receiveCredits)throw Error(playerName(to)+' does not have that many credits.');
     S.trades.push({id:crypto.randomUUID(),from:me,to,...inputs,status:'PENDING',createdAt:Date.now()});
+    playerTradeDraft={give:[],receive:[]};
     logEvent(playerName(me)+' offered a trade to '+playerName(to)+'.');return;
   }
   const trade=S.trades.find(t=>t.id===id);
@@ -112,17 +166,49 @@ function executePlayerTrade(action,id,inputs){
   if(action==='cancel'){if(trade.from!==me)throw Error('You can only cancel your own offers.');trade.status='CANCELLED';return;}
   if(trade.to!==me)throw Error('This offer is for another player.');
   if(action==='decline'){trade.status='DECLINED';return;}
-  const give=checkedTradeItem(trade.giveItem,trade.from),receive=checkedTradeItem(trade.receiveItem,trade.to);
+  const give=checkedTradeItems(tradeItems(trade,'give'),trade.from),receive=checkedTradeItems(tradeItems(trade,'receive'),trade.to);
   if(player(trade.from).credits<trade.giveCredits||player(trade.to).credits<trade.receiveCredits)throw Error('Someone no longer has enough credits for this offer.');
-  if(give){give.ownerId=trade.to;give.tradeCount++;}if(receive){receive.ownerId=trade.from;receive.tradeCount++;}
+  for(const item of give){item.ownerId=trade.to;item.tradeCount++;}for(const item of receive){item.ownerId=trade.from;item.tradeCount++;}
   credit(trade.from,-trade.giveCredits,'TRADE_TRANSFER','Offer '+trade.id);credit(trade.to,-trade.receiveCredits,'TRADE_TRANSFER','Offer '+trade.id);
   credit(trade.to,trade.giveCredits,'TRADE_TRANSFER','Offer '+trade.id);credit(trade.from,trade.receiveCredits,'TRADE_TRANSFER','Offer '+trade.id);
   trade.status='ACCEPTED';trade.completedAt=Date.now();logEvent(playerName(trade.from)+' and '+playerName(trade.to)+' completed a trade.');
 }
+function updateTradeDraft(side,value,remove=false){
+  if(!['give','receive'].includes(side)||!value)return;
+  const list=playerTradeDraft[side];
+  const index=list.indexOf(value);
+  if(remove&&index>=0)list.splice(index,1);
+  else if(!remove&&index<0)list.push(value);
+  render();
+}
+document.addEventListener('dragstart',event=>{
+  const item=event.target.closest('[data-trade-item]');
+  if(!item||!isPlayer())return;
+  event.dataTransfer.setData('text/plain',item.dataset.tradeSide+'|'+item.dataset.tradeItem);
+  event.dataTransfer.effectAllowed='move';
+});
+document.addEventListener('dragover',event=>{if(event.target.closest('[data-trade-drop]'))event.preventDefault();});
+document.addEventListener('drop',event=>{
+  const zone=event.target.closest('[data-trade-drop]');if(!zone||!isPlayer())return;
+  event.preventDefault();const [side,value]=event.dataTransfer.getData('text/plain').split('|');
+  if(side===zone.dataset.tradeDrop)updateTradeDraft(side,value);
+});
+document.addEventListener('click',event=>{
+  const add=event.target.closest('[data-trade-add]'),remove=event.target.closest('[data-trade-remove]');
+  if(add&&isPlayer())updateTradeDraft(add.dataset.tradeAdd,add.dataset.tradeItem);
+  else if(remove&&isPlayer())updateTradeDraft(remove.dataset.tradeRemove,remove.dataset.tradeItem,true);
+});
 document.addEventListener('change',event=>{
   if(!isPlayer()||backend!=='cloud')return;
-  const key=event.target.dataset.playerFilter;if(!['playerSearch','playerCardState','tradePartner'].includes(key))return;
+  const key=event.target.dataset.playerFilter;
+  if(!['playerSearch','playerCardState','tradePartner','catalogQ','catalogOwner','catalogSet','catalogState','catalogSort'].includes(key))return;
+  if(key==='tradePartner')playerTradeDraft.receive=[];
   S.ui[key]=event.target.value;rememberPlayerUi();render();
+});
+document.addEventListener('input',event=>{
+  if(!isPlayer()||backend!=='cloud'||event.target.dataset.playerFilter!=='catalogQ')return;
+  S.ui.catalogQ=event.target.value;rememberPlayerUi();render();
+  const input=document.querySelector('[data-player-filter="catalogQ"]');if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length);}
 });
 document.addEventListener('click',async event=>{
   const button=event.target.closest('[data-player-act]');
@@ -130,7 +216,7 @@ document.addEventListener('click',async event=>{
   if(saveDirty||saveInFlight){flash('Wait for your last change to save before continuing.',true);return;}
   const action=button.dataset.playerAct,id=button.dataset.id;
   if(!['refresh','buy','open','use','offer','accept','decline','cancel'].includes(action))return;
-  const inputs=action==='offer'?{giveItem:document.getElementById('giveItem').value,receiveItem:document.getElementById('receiveItem').value,giveCredits:Number(document.getElementById('giveCredits').value),receiveCredits:Number(document.getElementById('receiveCredits').value)}:null;
+  const inputs=action==='offer'?{giveItems:[...playerTradeDraft.give],receiveItems:[...playerTradeDraft.receive],giveCredits:Number(document.getElementById('giveCredits').value),receiveCredits:Number(document.getElementById('receiveCredits').value)}:null;
   const note=action==='use'?prompt('How was this promise fulfilled?',''):null;
   if(action==='use'&&note===null)return;
   playerBusy=true;button.disabled=true;rememberPlayerUi();let before,result;

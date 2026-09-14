@@ -2,7 +2,7 @@
 
 A shared card game for a small group of friends. GitHub Pages hosts the interface; Firebase's Spark plan supplies anonymous sessions and Firestore storage. The deployed app needs no Python server.
 
-This version has username/password login for administrators and players. Administrators retain the existing Setup, Auction, Shop, Public Market, Cards, and Players screens. Players get a smaller view for their cards, pack purchases/openings, card use and inspection, and direct trades.
+This version has username/password login for administrators and players. Administrators retain the existing Setup, Auction, Shop, Public Market, Cards, and Players screens. Players get a smaller view for their collection, a table-wide card catalog, pack purchases/openings, card use and inspection, and multi-item inventory trades with credits.
 
 ## Finish setup
 

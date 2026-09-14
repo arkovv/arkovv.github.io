@@ -8,7 +8,6 @@ document.addEventListener("click", e => {
   if(el.tagName === "SELECT" || el.tagName === "INPUT") return;
   const act = el.getAttribute("data-act");
   if(isPlayer() && !['inspect','closeOverlay'].includes(act)) return;
-  if(isPlayer() && act==='inspect' && !S.instances.some(i=>i.id===Number(el.dataset.id)&&i.ownerId===accountSession.playerId)) return;
   const fn = ACTIONS[act];
   if(!fn) return;
   e.preventDefault();
