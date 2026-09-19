@@ -2,9 +2,19 @@
    2. RANDOMNESS  (crypto, never Math.random)
    ============================================================ */
 
+// Replay the same random draws if Firestore retries an operation.
+let randomReplay = null;
+function randomWords(array){
+  if(!randomReplay){crypto.getRandomValues(array);return;}
+  for(let n=0;n<array.length;n++){
+    const i=randomReplay.index++;
+    if(i===randomReplay.words.length){const word=new Uint32Array(1);crypto.getRandomValues(word);randomReplay.words.push(word[0]);}
+    array[n]=randomReplay.words[i];
+  }
+}
 function randUnit(){                       // uniform double in [0,1)
   const b = new Uint32Array(2);
-  crypto.getRandomValues(b);
+  randomWords(b);
   return (b[0] * 4294967296 + b[1]) / 18446744073709551616;
 }
 function randInt(n){                       // uniform integer 0..n-1, rejection sampled
@@ -12,7 +22,7 @@ function randInt(n){                       // uniform integer 0..n-1, rejection 
   const limit = Math.floor(4294967296 / n) * n;
   const b = new Uint32Array(1);
   let x;
-  do{ crypto.getRandomValues(b); x = b[0]; } while(x >= limit);
+  do{ randomWords(b); x = b[0]; } while(x >= limit);
   return x % n;
 }
 function chance(p){ return randUnit() < p; }

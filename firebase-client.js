@@ -1,5 +1,25 @@
 /* Connect on demand so a failed startup can be retried without reloading. */
 let firebaseConnection = null;
+let tabIdentityPromise=null;
+function claimTabIdentity(){
+  if(tabIdentityPromise)return tabIdentityPromise;
+  tabIdentityPromise=new Promise(resolve=>{
+    let id;try{id=sessionStorage.getItem('friendsCards.tabIdentity');}catch(_){}
+    const claim=()=>{
+      id=id||crypto.randomUUID();
+      const accept=()=>{try{sessionStorage.setItem('friendsCards.tabIdentity',id);}catch(_){}resolve(id);};
+      // Older browsers cannot detect a duplicated tab, but retaining the ID
+      // still keeps a normal refresh signed in.
+      if(!navigator.locks){accept();return;}
+      navigator.locks.request('friendsCards.tab.'+id,{ifAvailable:true},lock=>{
+        if(!lock){id=null;claim();return;}
+        accept();return new Promise(()=>{}); // Browser releases the lock on unload.
+      }).catch(()=>{id=crypto.randomUUID();accept();});
+    };
+    claim();
+  });
+  return tabIdentityPromise;
+}
 function connectFirebase() {
   if (!firebaseConnection) {
     firebaseConnection = initializeFirebase().catch(error => {
@@ -22,8 +42,12 @@ async function initializeFirebase() {
     import('./cloud-store.mjs'),
     import('./session-client.mjs')
   ]);
-  const firebaseApp = getApps()[0] || initializeApp(config);
-  const auth = authSdk.getAuth(firebaseApp);
+  // A named app plus a tab lock isolates even duplicated tabs (whose session
+  // storage starts as a copy) while allowing a normal refresh to restore login.
+  const name='table-'+await claimTabIdentity();
+  const existing=getApps().find(app=>app.name===name);
+  const firebaseApp = existing || initializeApp(config,name);
+  const auth = existing?authSdk.getAuth(firebaseApp):authSdk.initializeAuth(firebaseApp, {persistence:authSdk.browserSessionPersistence});
   await auth.authStateReady();
   if (!auth.currentUser) await authSdk.signInAnonymously(auth);
   const db = firestoreSdk.getFirestore(firebaseApp);

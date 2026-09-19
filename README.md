@@ -14,7 +14,9 @@ Account hashes are credentials: they belong only in protected Firestore document
 
 ## Saving and backups
 
-The table is stored at `tables/main` as JSON with a revision number. Saves use a transaction: if another tab has saved since this tab loaded, editing pauses instead of replacing that newer table. Export the unsaved copy and reload to reconcile the changes. Use one active editing tab.
+The table is stored at `tables/main` as JSON with a revision number. Player actions run against the newest table inside Firestore transactions, so simultaneous pack openings and trade responses are retried safely. Stable operation receipts prevent a lost network response from applying an action twice. Admin saves automatically merge edits to different fields; if two administrators change the same value, the app keeps the cloud version and offers the unsaved copy for export.
+
+The app listens for live table updates. It waits while someone is typing, inspecting a card, or completing a local action, then applies the newest revision without replacing that tab's navigation preferences. Each browser tab uses an isolated anonymous Firebase identity where Web Locks are supported, so different accounts can remain signed in in separate tabs. Sessions are checked before writes and periodically while the app is open.
 
 The frontend limits table JSON to 900 KB, below Firestore's 1 MiB document limit. The trusted group shares one table document; player restrictions are enforced by the player interface, while Firestore restricts table access to approved accounts. Export JSON backups periodically; the browser also retains pending changes and a previous-table copy for replacement operations.
 
@@ -34,6 +36,6 @@ npm run build:pages
 
 Preview the output locally with `python -m http.server 8777 --bind 127.0.0.1 --directory _site`, then open `http://localhost:8777`. Opening the HTML directly from disk is unsupported.
 
-Optional browser tests: install Playwright separately and set `PLAYWRIGHT_PATH` to its module path; set `CHROME_PATH` to your browser executable if needed. Run `npm run test:browser`. These tests simulate the cloud boundary, while the cloud-store unit tests cover serialization, stale writes, limits, and retries. Live Firebase verification requires the completed configuration and deployed rules.
+Optional browser tests: install Playwright separately and set `PLAYWRIGHT_PATH` to its module path; set `CHROME_PATH` to your browser executable if needed. Run `npm run test:browser`. The shared-client suite exercises simultaneous actions, live offers, transaction retry, idempotent recovery, and session renewal against a simulated transactional cloud. Live Firebase verification still requires the completed configuration and deployed rules.
 
 `server.py`, `start_table.bat`, and the Python tests are retained for legacy SQLite maintenance. The old server requires `FC_ADMIN_HASH` if its legacy API is used; it has no default credential. It is not part of the online deployment. See [LOCAL-VERSION.md](LOCAL-VERSION.md) for historical game documentation and [ART-CREDITS.md](ART-CREDITS.md) for artwork attribution.

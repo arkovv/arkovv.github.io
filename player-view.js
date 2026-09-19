@@ -1,6 +1,7 @@
 const PLAYER_TABS=[['cards','My Cards'],['catalog','All Cards'],['packs','Packs'],['trading','Trading']];
 let playerBusy=false;
-let playerTradeDraft={give:[],receive:[]};
+function emptyTradeDraft(){return {give:[],receive:[],giveCredits:'0',receiveCredits:'0'};}
+let playerTradeDraft=emptyTradeDraft();
 function rememberPlayerUi(){
   try{sessionStorage.setItem('friendsCards.playerUi.'+accountSession.username,JSON.stringify(S.ui));}catch(_){}
 }
@@ -125,7 +126,7 @@ function playerTradingView(){
     const tray=side=>playerTradeDraft[side].length?playerTradeDraft[side].map(value=>tradeItemTile(value,side,true)).join(''):'<div class="trade-drop-empty">Drop items here or tap them above</div>';
     html+='<section class="panel steam-trade"><div class="trade-toolbar"><label>Trading with<select data-player-filter="tradePartner">'+others.map(p=>'<option value="'+p.id+'"'+(p.id===partner.id?' selected':'')+'>'+esc(p.name)+'</option>').join('')+'</select></label><span>Items move only after '+esc(partner.name)+' accepts.</span></div>';
     html+='<div class="trade-inventories"><section><div class="trade-pane-title"><h3>Your inventory</h3><span>'+playerItems(me.id).length+' items</span></div><div class="trade-item-grid">'+inventory(me.id,'give')+'</div></section><section><div class="trade-pane-title"><h3>'+esc(partner.name)+'\'s inventory</h3><span>'+playerItems(partner.id).length+' items</span></div><div class="trade-item-grid">'+inventory(partner.id,'receive')+'</div></section></div>';
-    html+='<div class="trade-offer-builder"><section><div class="trade-pane-title"><h3>You offer</h3><span>'+playerTradeDraft.give.length+' selected</span></div><div class="trade-dropzone" data-trade-drop="give">'+tray('give')+'</div><label class="trade-credit">Credits <input id="giveCredits" type="number" min="0" max="'+me.credits+'" value="0"><small>Available: '+me.credits+' C</small></label></section><div class="trade-swap" aria-hidden="true">&#8644;</div><section><div class="trade-pane-title"><h3>You request</h3><span>'+playerTradeDraft.receive.length+' selected</span></div><div class="trade-dropzone" data-trade-drop="receive">'+tray('receive')+'</div><label class="trade-credit">Credits <input id="receiveCredits" type="number" min="0" max="'+partner.credits+'" value="0"><small>'+esc(partner.name)+' has '+partner.credits+' C</small></label></section></div>';
+    html+='<div class="trade-offer-builder"><section><div class="trade-pane-title"><h3>You offer</h3><span>'+playerTradeDraft.give.length+' selected</span></div><div class="trade-dropzone" data-trade-drop="give">'+tray('give')+'</div><label class="trade-credit">Credits <input id="giveCredits" type="number" min="0" max="'+me.credits+'" value="'+esc(playerTradeDraft.giveCredits)+'"><small>Available: '+me.credits+' C</small></label></section><div class="trade-swap" aria-hidden="true">&#8644;</div><section><div class="trade-pane-title"><h3>You request</h3><span>'+playerTradeDraft.receive.length+' selected</span></div><div class="trade-dropzone" data-trade-drop="receive">'+tray('receive')+'</div><label class="trade-credit">Credits <input id="receiveCredits" type="number" min="0" max="'+partner.credits+'" value="'+esc(playerTradeDraft.receiveCredits)+'"><small>'+esc(partner.name)+' has '+partner.credits+' C</small></label></section></div>';
     html+='<div class="trade-submit"><p>'+playerTradeDraft.give.length+' of your items for '+playerTradeDraft.receive.length+' of theirs</p><button class="primary" data-player-act="offer" data-id="'+partner.id+'">Send trade offer</button></div></section>';
   }
   html+='<section class="panel trade-history"><h2>Your offers</h2>';
@@ -147,18 +148,27 @@ function checkedTradeItems(values,owner){
     return item;
   });
 }
-function executePlayerTrade(action,id,inputs){
+function tradeFingerprint(value){
+  const [kind,id]=value.split(':');
+  const item=(kind==='card'?S.instances:S.packs).find(i=>i.id===Number(id));
+  return item ? JSON.stringify(item) : null;
+}
+function tradeConditionsMatch(trade){
+  const values=[...tradeItems(trade,'give'),...tradeItems(trade,'receive')];
+  return values.every(value=>trade.conditions?.[value]===tradeFingerprint(value));
+}
+function executePlayerTrade(action,id,inputs,operationId){
   const me=accountSession.playerId;
   S.trades=S.trades||[];
   if(action==='offer'){
     const to=Number(id);if(to===me||!player(to))throw Error('Choose another player.');
     for(const amount of [inputs.giveCredits,inputs.receiveCredits])if(!Number.isSafeInteger(amount)||amount<0)throw Error('Credit amounts must be whole numbers, zero or greater.');
     checkedTradeItems(inputs.giveItems,me);checkedTradeItems(inputs.receiveItems,to);
+    if(!tradeConditionsMatch({giveItems:inputs.giveItems,receiveItems:inputs.receiveItems,conditions:inputs.conditions}))throw Error('An item changed while you were preparing this offer. Review the refreshed inventory and try again.');
     if(!inputs.giveItems.length&&!inputs.receiveItems.length&&!inputs.giveCredits&&!inputs.receiveCredits)throw Error('Add an item or credits to the offer.');
     if(player(me).credits<inputs.giveCredits)throw Error('You do not have enough credits.');
     if(player(to).credits<inputs.receiveCredits)throw Error(playerName(to)+' does not have that many credits.');
-    S.trades.push({id:crypto.randomUUID(),from:me,to,...inputs,status:'PENDING',createdAt:Date.now()});
-    playerTradeDraft={give:[],receive:[]};
+    S.trades.push({id:operationId||crypto.randomUUID(),from:me,to,...inputs,status:'PENDING',createdAt:Date.now()});
     logEvent(playerName(me)+' offered a trade to '+playerName(to)+'.');return;
   }
   const trade=S.trades.find(t=>t.id===id);
@@ -166,6 +176,7 @@ function executePlayerTrade(action,id,inputs){
   if(action==='cancel'){if(trade.from!==me)throw Error('You can only cancel your own offers.');trade.status='CANCELLED';return;}
   if(trade.to!==me)throw Error('This offer is for another player.');
   if(action==='decline'){trade.status='DECLINED';return;}
+  if(!tradeConditionsMatch(trade))throw Error('An offered item changed, or this is an older offer without a condition record. Decline it and request a new offer.');
   const give=checkedTradeItems(tradeItems(trade,'give'),trade.from),receive=checkedTradeItems(tradeItems(trade,'receive'),trade.to);
   if(player(trade.from).credits<trade.giveCredits||player(trade.to).credits<trade.receiveCredits)throw Error('Someone no longer has enough credits for this offer.');
   for(const item of give){item.ownerId=trade.to;item.tradeCount++;}for(const item of receive){item.ownerId=trade.from;item.tradeCount++;}
@@ -202,38 +213,92 @@ document.addEventListener('change',event=>{
   if(!isPlayer()||backend!=='cloud')return;
   const key=event.target.dataset.playerFilter;
   if(!['playerSearch','playerCardState','tradePartner','catalogQ','catalogOwner','catalogSet','catalogState','catalogSort'].includes(key))return;
-  if(key==='tradePartner')playerTradeDraft.receive=[];
+  if(key==='tradePartner'){playerTradeDraft.receive=[];playerTradeDraft.receiveCredits='0';}
   S.ui[key]=event.target.value;rememberPlayerUi();render();
 });
 document.addEventListener('input',event=>{
-  if(!isPlayer()||backend!=='cloud'||event.target.dataset.playerFilter!=='catalogQ')return;
+  if(!isPlayer()||backend!=='cloud')return;
+  if(['giveCredits','receiveCredits'].includes(event.target.id)){playerTradeDraft[event.target.id]=event.target.value;return;}
+  if(event.target.dataset.playerFilter!=='catalogQ')return;
   S.ui.catalogQ=event.target.value;rememberPlayerUi();render();
   const input=document.querySelector('[data-player-filter="catalogQ"]');if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length);}
 });
+// An operation is retained in this tab until its outcome is known.
+let pendingPlayerOperation=null;
+function pendingOperationKey(){return KEY+'.operation.'+accountSession.username;}
+function savePendingOperation(){
+  try{if(pendingPlayerOperation)sessionStorage.setItem(pendingOperationKey(),JSON.stringify(pendingPlayerOperation));else sessionStorage.removeItem(pendingOperationKey());}catch(_){}
+}
+function applyPlayerOperation(state,operation){
+  validateTable(state);
+  const previous=S, previousAccount=accountSession, previousRandom=randomReplay;
+  try{
+    S=hydrate(state);accountSession=operation.account;S.ui.acting=accountSession.playerId;
+    randomReplay={words:operation.words,index:0};
+    const {action,target,inputs,note}=operation;
+    if(!player(accountSession.playerId))throw Error('Your player was removed from the table.');
+    let result;
+    if(action==='buy')result=rollStandard(accountSession.playerId);
+    else if(action==='open')result=openPack(Number(target),accountSession.playerId);
+    else if(action==='use'){
+      const card=S.instances.find(i=>i.id===Number(target)&&i.ownerId===accountSession.playerId&&i.state==='ACTIVE');
+      if(!card)throw Error('This card is no longer available to use.');
+      card.state='REDEEMED';card.note=note;logEvent(playerName(card.ownerId)+' used '+designText(card.designId)+'.');
+    }else executePlayerTrade(action,target,inputs,operation.id);
+    if(result?.error)throw Error(result.error);
+    validateTable(S);
+    // Keep shared preferences out of the player mutation.
+    const originalUi=state.ui;Object.assign(state,S);state.ui=originalUi;
+    return result?{type:result.type,setId:result.setId,playerId:result.playerId,outcome:result.outcome,
+      refund:result.refund||0,instanceId:result.instance?.id||null,legacyId:result.legacy?.id||null,packId:result.packId||null}:null;
+  }finally{S=previous;accountSession=previousAccount;randomReplay=previousRandom;}
+}
+async function submitPlayerOperation(){
+  if(playerBusy||!pendingPlayerOperation||backend!=='cloud')return;
+  playerBusy=true;
+  const operation=pendingPlayerOperation;
+  try{
+    if(Date.now()-operation.at>12*60*60*1000)throw Error('This pending action expired. Refresh the table before trying it again.');
+    const cloud=await connectFirebase();await verifyCurrentAccount(cloud);
+    if(operation.baseRevision===undefined){operation.baseRevision=cloud.getRevision();savePendingOperation();}
+    flash('Saving your action…');
+    const committed=await cloud.updateState(operation,state=>applyPlayerOperation(state,operation));
+    const ui=S.ui;S=hydrate(committed.state);S.ui=ui;preparePlayerUi();
+    pendingPlayerOperation=null;savePendingOperation();
+    if(operation.action==='offer')playerTradeDraft=emptyTradeDraft();
+    closeOverlay();render();flash('Saved online');
+    if(committed.result){
+      const r=committed.result,pack=S.packs.find(p=>p.id===r.packId);
+      showPackAnimation({...r,instance:S.instances.find(i=>i.id===r.instanceId),legacy:S.packs.find(p=>p.id===r.legacyId),odds:pack?.odds||getSet(r.setId)?.snapshot.standard});
+    }
+  }catch(error){
+    savePendingOperation();
+    if(['permission-denied','session-changed','unauthenticated'].includes(error.code)){requestReauthentication(error.message);return;}
+    if(['unavailable','deadline-exceeded','aborted','unknown'].includes(error.code)){
+      flash('Action not confirmed yet. Retry safely with Retry save.',true);
+    }else{
+      pendingPlayerOperation=null;savePendingOperation();
+      try{const ui=S.ui;S=hydrate(await (await connectFirebase()).readState());S.ui=ui;}catch(_){}
+      say(error.message,'err');render();flash('Action was not completed. Review the table and try again.',true);
+    }
+  }finally{playerBusy=false;flushReauthentication();drainLiveSnapshot();}
+}
 document.addEventListener('click',async event=>{
   const button=event.target.closest('[data-player-act]');
   if(!button||!isPlayer()||backend!=='cloud'||playerBusy)return;
-  if(saveDirty||saveInFlight){flash('Wait for your last change to save before continuing.',true);return;}
-  const action=button.dataset.playerAct,id=button.dataset.id;
+  if(pendingPlayerOperation){flash('Retry your pending action before starting another.',true);return;}
+  const action=button.dataset.playerAct,target=button.dataset.id;
   if(!['refresh','buy','open','use','offer','accept','decline','cancel'].includes(action))return;
-  const inputs=action==='offer'?{giveItems:[...playerTradeDraft.give],receiveItems:[...playerTradeDraft.receive],giveCredits:Number(document.getElementById('giveCredits').value),receiveCredits:Number(document.getElementById('receiveCredits').value)}:null;
+  if(action==='refresh'){
+    playerBusy=true;
+    try{const cloud=await connectFirebase();await verifyCurrentAccount(cloud);const latest=await cloud.readState();validateTable(latest);const ui=S.ui;S=hydrate(latest);S.ui=ui;preparePlayerUi();render();flash('Saved online');}
+    catch(error){if(['permission-denied','session-changed','unauthenticated'].includes(error.code))requestReauthentication(error.message);else flash(error.message,true);}
+    finally{playerBusy=false;flushReauthentication();drainLiveSnapshot();}return;
+  }
+  const inputs=action==='offer'?{giveItems:[...playerTradeDraft.give],receiveItems:[...playerTradeDraft.receive],giveCredits:Number(playerTradeDraft.giveCredits),receiveCredits:Number(playerTradeDraft.receiveCredits),
+    conditions:Object.fromEntries([...playerTradeDraft.give,...playerTradeDraft.receive].map(value=>[value,tradeFingerprint(value)]))}:null;
   const note=action==='use'?prompt('How was this promise fulfilled?',''):null;
   if(action==='use'&&note===null)return;
-  playerBusy=true;button.disabled=true;rememberPlayerUi();let before,result;
-  try{
-    const cloud=await connectFirebase(),latest=await cloud.readState();validateTable(latest);
-    S=hydrate(latest);preparePlayerUi();before=JSON.stringify(S);
-    if(action==='buy')result=rollStandard(accountSession.playerId);
-    else if(action==='open')result=openPack(Number(id),accountSession.playerId);
-    else if(action==='use'){
-      const card=S.instances.find(i=>i.id===Number(id)&&i.ownerId===accountSession.playerId&&i.state==='ACTIVE');
-      if(!card)throw Error('This card is no longer available to use.');
-      card.state='REDEEMED';card.note=note;logEvent(playerName(card.ownerId)+' used '+designText(card.designId)+'.');closeOverlay();
-    }else if(action!=='refresh')executePlayerTrade(action,id,inputs);
-    if(result?.error)throw Error(result.error);
-    if(action!=='refresh'){save();await pushToDb();}
-    if(!saveDirty){say(action==='refresh'?'Your collection is up to date.':action==='offer'?'Offer sent. Your friend can accept it in Trading.':'Saved to the table.');}
-    render();if(result&&!saveDirty)showPackAnimation(result);
-  }catch(error){if(before&&!saveDirty){S=JSON.parse(before);}say(error.message,'err');render();}
-  finally{playerBusy=false;button.disabled=false;}
+  pendingPlayerOperation={id:crypto.randomUUID(),at:Date.now(),account:{...accountSession},action,target,inputs,note,words:[]};
+  savePendingOperation();await submitPlayerOperation();
 });

@@ -11,6 +11,7 @@ function hudIcon(name){
   return '<svg class="hud-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(paths[name]||paths.cards)+'</svg>';
 }
 function protectReplacement(){
+  replacementPending=true;
   // A failed recovery write cancels replacement rather than discarding the old table.
   try { localStorage.setItem(KEY+'.previous',JSON.stringify(S)); }
   catch(e){ if(backend!=='db') throw new Error('Browser storage cannot preserve the previous table. Free browser storage and retry; export a backup now to keep your data.'); }
@@ -32,7 +33,14 @@ function offerRecovery(){
     if(JSON.stringify(recovery.state)===JSON.stringify(S)){localStorage.removeItem(RECOVERY_KEY);return;}
     showModal('<h1>Unsaved table found</h1><p>A local recovery copy from '+esc(when(recovery.at))+' contains '+esc(tableSummary(recovery.state))+'.</p><p>The database currently contains '+esc(tableSummary(S))+'. You can download the recovery copy before deciding.</p><div class="row"><button data-act="downloadRecovery">Download recovery JSON</button><button data-act="applyRecovery">Restore recovery copy</button><button data-act="discardRecovery">Keep database table</button></div>');
     ACTIONS.downloadRecovery=()=>{downloadFile('friends-cards-recovery.json',JSON.stringify(recovery.state,null,2),'application/json');return 'skipRender';};
-    ACTIONS.applyRecovery=()=>{if(!confirm('Replace the database table with this recovery copy?\n'+tableSummary(recovery.state)))return 'skipRender';protectReplacement();S=hydrate(recovery.state);closeOverlay();say('Recovery restored.');};
+    ACTIONS.applyRecovery=()=>{
+      if(!confirm('Recover these pending edits? Conflicting changes will be rejected.\n'+tableSummary(recovery.state)))return 'skipRender';
+      if(recovery.base&&syncCloud){
+        if(recovery.replace&&JSON.stringify({...recovery.base,ui:null})!==JSON.stringify({...S,ui:null}))throw Error('The table changed since this replacement. Export the recovery copy and review it first.');
+        const merged=syncCloud.rebaseState(recovery.base,recovery.state,S);validateTable(merged);S=hydrate(merged);replacementPending=!!recovery.replace;
+      }else{throw Error('This older recovery copy has no baseline. Export it and review it before importing.');}
+      closeOverlay();say('Pending edits recovered.');
+    };
     ACTIONS.discardRecovery=()=>{if(!confirm('Discard the unsaved recovery copy and keep the database table?'))return 'skipRender';localStorage.removeItem(RECOVERY_KEY);closeOverlay();};
   }catch(e){say('Recovery copy could not be read: '+e.message,'err');render();}
 }

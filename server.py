@@ -292,7 +292,7 @@ def _write_state(state):
         for table in TABLES:
             con.execute("DELETE FROM " + table)
 
-        for key in ("config", "ids", "ui"):
+        for key in ("config", "ids", "ui", "trades", "operations"):
             con.execute(
                 "INSERT INTO meta(key, value) VALUES(?,?)",
                 (key, json.dumps(state.get(key) or {})),
@@ -452,6 +452,8 @@ def read_state() -> dict:
             "config": meta.get("config") or {},
             "ids": meta.get("ids") or {},
             "ui": meta.get("ui") or {},
+            "trades": meta.get("trades") or [],
+            "operations": meta.get("operations") or [],
             "players": [], "sets": [], "instances": [], "packs": [],
             "ledger": [], "log": [], "weekly": [],
         }
@@ -577,6 +579,7 @@ def read_state() -> dict:
 # --------------------------------------------------------------------------
 
 class Handler(SimpleHTTPRequestHandler):
+    extensions_map = {**SimpleHTTPRequestHandler.extensions_map, '.mjs': 'application/javascript', '.js': 'application/javascript'}
     server_version = "FriendsCardsLocal/1.0"
 
     def end_headers(self):

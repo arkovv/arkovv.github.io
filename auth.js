@@ -1,7 +1,23 @@
 /* Admin identity is verified by Firestore rules, never by a local role flag. */
 let adminSession = false;
+let reauthMessage=null, suspendedAdmin=null;
+function requestReauthentication(message){
+  reauthMessage=message;
+  if(saveInFlight||playerBusy)return;
+  flushReauthentication();
+}
+function flushReauthentication(){
+  if(!reauthMessage||saveInFlight||playerBusy)return;
+  const message=reauthMessage;reauthMessage=null;
+  if(saveDirty&&S&&accountSession){keepRecovery();suspendedAdmin={username:accountSession.username,state:structuredClone(S),base:syncCloud?.getBase?.(),replace:replacementPending};}
+  clearTimeout(savePending);saveDirty=false;replacementPending=false;
+  showLogin(message);
+}
 function showLogin(message = '') {
+  stopLiveSync();clearTimeout(savePending);
+  closeOverlay();
   backend = 'blocked'; S = null; adminSession = false; accountSession = null;
+  playerTradeDraft=emptyTradeDraft();pendingPlayerOperation=null;
   document.body.classList.remove('player-mode');
   document.body.classList.add('signed-out');
   document.getElementById('overlayHost').replaceChildren();
@@ -27,10 +43,11 @@ function showLogin(message = '') {
         throw new Error('This account does not have a valid player or admin profile.');
       }
       accountSession = profile;
+      scopeRecovery();
       adminSession = true;
       await boot();
     } catch (error) {
-      document.getElementById('loginMessage').textContent = error.code === 'permission-denied'
+      const message=document.getElementById('loginMessage');if(message)message.textContent = error.code === 'permission-denied'
         ? 'Login was rejected. Check your username/password, or ask the host to check the account and rules.' : error.message;
     } finally { button.disabled = false; button.textContent = 'Sign in'; }
   });
@@ -40,12 +57,13 @@ async function restoreLogin() {
     const profile = await (await connectFirebase()).currentSession();
     if (!validAccountProfile(profile)) { showLogin(); return; }
     accountSession = profile;
+    scopeRecovery();
     adminSession = true;
     await boot();
   } catch (_) { showLogin(); }
 }
 document.getElementById('adminLogout').addEventListener('click', async () => {
-  if (saveDirty || saveInFlight) { flash('Wait for your changes to save before signing out.', true); return; }
+  if (saveDirty || saveInFlight || playerBusy || pendingPlayerOperation) { flash('Finish or retry your pending action before signing out.', true); return; }
   try {
     await (await connectFirebase()).logout();
     showLogin();

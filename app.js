@@ -11,12 +11,13 @@ document.addEventListener("click", e => {
   const fn = ACTIONS[act];
   if(!fn) return;
   e.preventDefault();
-  const before = JSON.stringify(S);
+  const before = JSON.stringify({...S,ui:undefined});
   let out;
   try { historyAction=act; out = fn(el.getAttribute("data-id"), el); }
   catch(error){ say(error.message, "err"); }
   finally { historyAction='TABLE_EVENT'; }
-  if(JSON.stringify(S) !== before) save();
+  rememberUi();
+  if(JSON.stringify({...S,ui:undefined}) !== before) save();
   if(out !== "skipRender") render();
 });
 
@@ -26,19 +27,21 @@ document.addEventListener("change", e => {
   if(isPlayer()) return;
 
   const act = t.getAttribute && t.getAttribute("data-act");
-  if(act && ACTIONS[act]){ ACTIONS[act](t.getAttribute("data-id"), t); save(); render(); return; }
+  if(act && ACTIONS[act]){const before=JSON.stringify({...S,ui:undefined});ACTIONS[act](t.getAttribute('data-id'),t);rememberUi();if(JSON.stringify({...S,ui:undefined})!==before)save();render();return;}
 
   const cfgKey = t.getAttribute && t.getAttribute("data-cfg");
   if(cfgKey){
     const v = Number(t.value);
+    const previous=S.config[cfgKey];
     if(isFinite(v)) S.config[cfgKey] = v;
+    try{validateTable(S);}catch(error){S.config[cfgKey]=previous;say(error.message,'err');render();return;}
     save(); render(); return;
   }
   const filterKey = t.getAttribute && t.getAttribute("data-filter");
   if(filterKey){
     S.ui.cardFilter = S.ui.cardFilter || {};
     S.ui.cardFilter[filterKey] = t.value;
-    save(); render(); return;
+    rememberUi(); render(); return;
   }
 });
 
@@ -113,15 +116,15 @@ document.getElementById("actingSel").addEventListener("change", e => {
   if(isPlayer()) return;
   if(!S || backend!=='cloud') return;
   S.ui.acting = Number(e.target.value);
-  save(); render();
+  rememberUi(); render();
 });
 document.getElementById("blurTgl").addEventListener("change", e => {
   if(!S || backend!=='cloud') return;
-  S.ui.blur = e.target.checked; if(isPlayer())rememberPlayerUi();else save(); render();
+  S.ui.blur = e.target.checked; if(isPlayer())rememberPlayerUi();else rememberUi(); render();
 });
 document.getElementById("soundTgl").addEventListener("change", e => {
   if(!S || backend!=='cloud') return;
-  S.ui.sound = e.target.checked; if(isPlayer())rememberPlayerUi();else save();
+  S.ui.sound = e.target.checked; if(isPlayer())rememberPlayerUi();else rememberUi();
 });
 document.addEventListener("keydown", e => {
   if(e.key === "Escape") closeOverlay();
@@ -140,10 +143,14 @@ async function boot(){
     const data=await cloud.readState();
     if(data !== null) validateTable(data);
     S=data !== null ? hydrate(data) : blankState(); backend='cloud';
+    restoreUi();
     if(isPlayer()){
       if(!player(accountSession.playerId)) throw new Error('This login is not linked to a player in the table. Ask the host to check the player ID.');
       preparePlayerUi();
+      try{pendingPlayerOperation=JSON.parse(sessionStorage.getItem(pendingOperationKey())||'null');}catch(_){}
       render();flash('Connected to your collection');
+      startLiveSync(cloud);
+      if(pendingPlayerOperation)await submitPlayerOperation();
       return;
     }
     if(!TABS.some(t=>t[0]===S.ui.tab))S.ui.tab='setup';
@@ -156,6 +163,14 @@ async function boot(){
     }
     document.getElementById('actingSel').disabled=false;
     render(); if(!saveDirty) flash(data === null ? 'Online table is empty — add players or import a backup' : 'Saved online');
+    startLiveSync(cloud);
+    if(suspendedAdmin?.username===accountSession.username){
+      const pending=suspendedAdmin;suspendedAdmin=null;
+      try{
+        if(!pending.base||(pending.replace&&JSON.stringify(pending.base)!==JSON.stringify(data)))throw Error('The table changed during sign-in. Export your pending edits from Setup recovery and repeat the change.');
+        S=hydrate(cloud.rebaseState(pending.base,pending.state,data));validateTable(S);replacementPending=pending.replace;save();render();return;
+      }catch(error){say(error.message,'err');render();}
+    }
     offerRecovery();
   } catch(e){
     backend='blocked';
@@ -164,10 +179,14 @@ async function boot(){
   }
 }
 document.getElementById('retrySave').addEventListener('click',()=>{
+  if(isPlayer()&&pendingPlayerOperation){submitPlayerOperation();return;}
   if(backend==='conflict'){ flash('Export your unsaved copy, then reload this page to load the latest online table.',true); return; }
   if(backend==='blocked') boot(); else if(backend==='cloud'){clearTimeout(savePending);pushToDb();} else save();
 });
-document.getElementById('emergencyExport').addEventListener('click',()=>{if(S) ACTIONS.exportJson();});
+document.getElementById('emergencyExport').addEventListener('click',()=>{
+  if(unsavedExportState)downloadFile('unsaved-table.json',JSON.stringify(unsavedExportState,null,2),'application/json');
+  else if(S)ACTIONS.exportJson();
+});
 window.addEventListener('beforeunload',e=>{
   if(!saveDirty&&!saveInFlight) return;
   if(backend==='cloud') keepRecovery();

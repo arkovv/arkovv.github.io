@@ -76,7 +76,8 @@ For a new empty table, add a player instead. The document is created on the **fi
 - **Authentication operation not allowed:** enable Anonymous sign-in in the same project as the config.
 - **Missing or insufficient permissions:** publish this repository's rules to the default Firestore database.
 - **Network/CDN error:** check the connection and retry login; the Firebase SDK is loaded from Google's CDN.
-- **Another tab saved a newer table:** export the unsaved copy, reload to load the latest table, then reconcile. Use one active editing tab.
+- **Another administrator changed the same field:** the latest cloud table is loaded and your unsaved copy remains available from **Export unsaved table**. Repeat the intended edit after reviewing the latest value.
+- **Action not confirmed yet:** use **Retry save**. The same operation ID is reused, so a response lost after a successful commit cannot apply the action twice.
 - **Table size limit:** export the table and ask for the multi-document storage upgrade; the app refuses JSON above 900 KB to stay below Firestore's 1 MiB document limit.
 
 The public web config is complete. The rules have been tested in a local Firestore emulator. A real login on your Firebase project still requires the same rules and matching private account/profile records in the live default database; local emulator tests do not change your live project.

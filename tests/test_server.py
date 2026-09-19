@@ -4,6 +4,7 @@ from pathlib import Path
 import sqlite3
 import tempfile
 import unittest
+from contextlib import closing
 
 ROOT = Path(__file__).resolve().parent.parent
 spec = importlib.util.spec_from_file_location('table_server', ROOT / 'server.py')
@@ -23,9 +24,13 @@ class PersistenceTests(unittest.TestCase):
         self.temp.cleanup()
 
     def test_roundtrip_and_frozen_history(self):
+        self.state['trades'] = [{'id': 'trade-1', 'from': 1, 'to': 2, 'giveItems': [],
+                                 'receiveItems': [], 'giveCredits': 5, 'receiveCredits': 0,
+                                 'status': 'PENDING', 'createdAt': 1}]
+        self.state['operations'] = [{'id': 'operation-1', 'at': 1, 'result': None}]
         server.write_state(self.state)
         restored = server.read_state()
-        for key in ['players', 'sets', 'instances', 'ledger', 'log', 'ids', 'weekly', 'config', 'ui']:
+        for key in ['players', 'sets', 'instances', 'ledger', 'log', 'ids', 'weekly', 'config', 'ui', 'trades', 'operations']:
             self.assertEqual(restored[key], self.state[key], key)
         for a, b in zip(restored['packs'], self.state['packs']):
             for key in b:
@@ -34,13 +39,13 @@ class PersistenceTests(unittest.TestCase):
     def test_backup_includes_committed_wal_and_precedes_replace(self):
         server.write_state(self.state)
         old = self.state['players'][0]['credits']
-        with sqlite3.connect(server.DB_PATH) as connection:
+        with closing(sqlite3.connect(server.DB_PATH)) as connection:
             connection.execute('PRAGMA wal_autocheckpoint=0')
             connection.execute('UPDATE players SET credits=? WHERE id=?', (old+7, self.state['players'][0]['id']))
             connection.commit()
             server.write_state(self.state, force_backup=True)
             latest = sorted((server.DB_PATH.parent / 'backups').glob('*.db'))[-1]
-            with sqlite3.connect(latest) as backup:
+            with closing(sqlite3.connect(latest)) as backup:
                 self.assertEqual(backup.execute('SELECT credits FROM players ORDER BY id').fetchone()[0], old+7)
                 self.assertEqual(backup.execute('PRAGMA integrity_check').fetchone()[0], 'ok')
 

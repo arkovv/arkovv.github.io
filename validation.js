@@ -20,6 +20,14 @@ function validateTable(data){
   function config(c,path){
     obj(c,path);
     for(const key of Object.keys(DEFAULTS)) if(typeof c[key]!=='number'||!Number.isFinite(c[key])) fail(path+'.'+key+' must be a finite number');
+    for(const key of ['cardsPerPlayer','desireBudget','defenseBudget','weeklyRefill','avgSetReward','packCost','failRefund','bidderFailReward']){
+      integer(c[key],path+'.'+key,['cardsPerPlayer','desireBudget','packCost'].includes(key)?1:0);
+      if(c[key]>1000000000)fail(path+'.'+key+' is too large');
+    }
+    for(const key of ['expectedRefills','targetHits','scarcityExponent','legacyAgeExponent'])if(c[key]<0||c[key]>1000000)fail(path+'.'+key+' is out of range');
+    if(c.boostBase<=0||c.boostBase>1000000)fail(path+'.boostBase must be greater than zero and at most 1000000');
+    if(c.legacyTrigger<0||c.legacyTrigger>1)fail(path+'.legacyTrigger must be between zero and one');
+    if(c.failRefund>=c.packCost)fail(path+'.failRefund must be less than packCost');
   }
   config(data.config,'config');
   function unique(rows,path){
@@ -86,6 +94,33 @@ function validateTable(data){
   data.ledger.forEach(l=>{integer(l.playerId,'Ledger player');integer(l.at,'Ledger date');if(!Number.isSafeInteger(l.delta)) fail('Ledger delta must be an integer');integer(l.after,'Ledger balance');text(l.type,'Ledger type');text(l.note,'Ledger note');});
   data.log.forEach(l=>{obj(l,'Log entry');integer(l.at,'Log date');text(l.text,'Log text');});
   data.weekly.forEach(w=>{obj(w,'Weekly entry');for(const k of ['at','amount','count']) integer(w[k],'Weekly '+k);});
+  if(data.trades!==undefined){
+    if(!Array.isArray(data.trades))fail('Trades must be an array');
+    const seen=new Set();
+    for(const t of data.trades){
+      obj(t,'Trade');text(t.id,'Trade ID');if(!/^[a-zA-Z0-9_-]{1,100}$/.test(t.id)||seen.has(t.id))fail('Invalid or duplicate trade ID');seen.add(t.id);
+      integer(t.from,'Trade sender',1);integer(t.to,'Trade recipient',1);if(t.from===t.to)fail('Trade participants must differ');
+      for(const key of ['giveCredits','receiveCredits','createdAt'])integer(t[key],'Trade '+key);
+      if(!['PENDING','ACCEPTED','DECLINED','CANCELLED'].includes(t.status))fail('Unknown trade status');
+      if(t.completedAt!==undefined)integer(t.completedAt,'Trade completion date');
+      const all=[];
+      for(const side of ['give','receive']){
+        const values=t[side+'Items']??(t[side+'Item']?[t[side+'Item']]:[]);
+        if(!Array.isArray(values))fail('Trade items must be an array');
+        for(const value of values){
+          if(typeof value!=='string'||!/^(card|pack):[1-9][0-9]*$/.test(value))fail('Invalid trade item');
+          const [kind,id]=value.split(':');if(!(kind==='card'?instances:packs).has(Number(id)))fail('Trade item is missing');
+          if(all.includes(value))fail('Duplicate trade item');all.push(value);
+        }
+      }
+      if(!all.length&&!t.giveCredits&&!t.receiveCredits)fail('Empty trade');
+      if(t.conditions!==undefined){obj(t.conditions,'Trade conditions');for(const [key,value] of Object.entries(t.conditions)){if(!all.includes(key))fail('Unexpected trade condition');text(value,'Trade condition');}}
+    }
+  }
+  if(data.operations!==undefined){
+    if(!Array.isArray(data.operations)||data.operations.length>256)fail('Invalid operation receipts');
+    const seen=new Set();for(const operation of data.operations){obj(operation,'Operation');text(operation.id,'Operation ID');if(seen.has(operation.id))fail('Duplicate operation ID');seen.add(operation.id);integer(operation.at,'Operation timestamp');}
+  }
   for(const [key,ids] of Object.entries({player:players,set:sets,design:new Set(designs.keys()),instance:instances,pack:packs,ledger})){
     integer(data.ids[key],'Next '+key+' ID',1);
     for(const id of ids) if(data.ids[key]<=id) fail('Next '+key+' ID would collide with existing history');

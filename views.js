@@ -87,7 +87,7 @@ function renderHeader(){
   document.getElementById("soundTgl").checked = !!S.ui.sound;
 }
 
-function go(tab){ if(!S || backend!=='cloud')return; if(isPlayer()&&!PLAYER_TABS.some(t=>t[0]===tab))return; S.ui.tab = tab; if(isPlayer()) rememberPlayerUi(); else save(); render(); window.scrollTo(0,0); }
+function go(tab){ if(!S || backend!=='cloud')return; if(isPlayer()&&!PLAYER_TABS.some(t=>t[0]===tab))return; S.ui.tab = tab; if(isPlayer()) rememberPlayerUi(); else rememberUi(); render(); window.scrollTo(0,0); }
 
 /* ============================================================
    7. SETUP VIEW — players, economy config, sets, card designs

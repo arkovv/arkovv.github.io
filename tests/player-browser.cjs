@@ -11,7 +11,7 @@ let browser;
  const initial=JSON.parse(fs.readFileSync(path.join(__dirname,'fixture.json'),'utf8'));initial.players[1].name='Azat';initial.instances[0].ownerId=2;initial.instances[1].ownerId=2;initial.instances[2].ownerId=3;
  const cardId=initial.instances[0].id,secondCardId=initial.instances[1].id,theirCardId=initial.instances[2].id,packId=initial.packs.find(p=>p.ownerId===2&&!p.opened).id;
  const cloud=await require('./cloud-fixture.cjs')(page,initial,{username:'azat',role:'player',playerId:2});
- async function login(target,username){await target.goto(url);await target.locator('#loginUser').fill(username);await target.locator('#loginPassword').fill('fixture-password-only');await target.locator('#adminLogin button').click();await target.waitForFunction(()=>S&&backend==='cloud');}
+ async function login(target,username){await target.goto(url);await target.locator('#loginUser').fill(username);await target.locator('#loginPassword').fill('fixture-password-only');await target.locator('#adminLogin button').click();try{await target.waitForFunction(()=>S&&backend==='cloud');}catch(error){console.error(await target.locator('body').innerText(),errors);throw error;}}
  await login(page,'azat');
  assert.equal(await page.locator('[data-tab="setup"]').count(),0);assert.equal(await page.locator('[data-tab="players"]').count(),0);
  assert.equal(await page.locator('#actingSel').isDisabled(),true);
@@ -34,10 +34,12 @@ let browser;
  assert.ok(cloud.value.players[1].credits<credits);await page.keyboard.press('Escape');
  await page.screenshot({path:path.join(work,'azat-packs-desktop.png'),animations:'disabled'});
  await page.locator('[data-tab="trading"]').click();await page.locator('[data-player-filter="tradePartner"]').selectOption('3');
+ await page.locator('#giveCredits').fill('7');await page.locator('#receiveCredits').fill('10');
  await page.evaluate(value=>{const dataTransfer=new DataTransfer(),source=document.querySelector('[data-trade-item="'+value+'"][data-trade-add]'),target=document.querySelector('[data-trade-drop="give"]');source.dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer}));target.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer}));target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer}));},'card:'+cardId);
  assert.deepEqual(await page.evaluate(()=>playerTradeDraft.give),['card:'+cardId]);
  await page.locator('[data-trade-item="card:'+secondCardId+'"][data-trade-add]').click();
- await page.locator('[data-trade-item="card:'+theirCardId+'"][data-trade-add]').click();await page.locator('#receiveCredits').fill('10');
+ await page.locator('[data-trade-item="card:'+theirCardId+'"][data-trade-add]').click();
+ assert.equal(await page.locator('#giveCredits').inputValue(),'7');assert.equal(await page.locator('#receiveCredits').inputValue(),'10');
  await page.screenshot({path:path.join(work,'azat-trade-builder-desktop.png'),animations:'disabled'});
  await page.locator('[data-player-act="offer"]').click();await page.waitForFunction(()=>!playerBusy&&!saveDirty&&!saveInFlight);
  const trade=cloud.value.trades[0];assert.equal(trade.status,'PENDING');assert.deepEqual(trade.giveItems,['card:'+cardId,'card:'+secondCardId]);assert.deepEqual(trade.receiveItems,['card:'+theirCardId]);assert.equal(cloud.value.instances.find(i=>i.id===cardId).ownerId,2);
@@ -45,11 +47,11 @@ let browser;
  await page.setViewportSize({width:390,height:844});
  for(const tab of ['cards','catalog','packs','trading']){await page.locator('[data-tab="'+tab+'"]').click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,tab+' overflows');await page.screenshot({path:path.join(work,'azat-'+tab+'-mobile.png'),animations:'disabled'});}
  const recipient=await browser.newPage();recipient.on('pageerror',e=>errors.push(e.message));
- const received=await require('./cloud-fixture.cjs')(recipient,cloud.value,{username:'friend',role:'player',playerId:3});
+ const received=await require('./cloud-fixture.cjs')(recipient,cloud.value,{username:'friend',role:'player',playerId:3},cloud);
  const oldCredits=received.value.players[2].credits;
  await login(recipient,'friend');await recipient.locator('[data-tab="trading"]').click();await recipient.locator('[data-player-act="accept"]').click();
  await recipient.waitForFunction(()=>!playerBusy&&!saveDirty&&!saveInFlight);
- assert.equal(received.value.trades[0].status,'ACCEPTED');assert.equal(received.value.instances.find(i=>i.id===cardId).ownerId,3);assert.equal(received.value.instances.find(i=>i.id===secondCardId).ownerId,3);assert.equal(received.value.instances.find(i=>i.id===theirCardId).ownerId,2);assert.equal(received.value.players[2].credits,oldCredits-10);
+ assert.equal(received.value.trades[0].status,'ACCEPTED');assert.equal(received.value.instances.find(i=>i.id===cardId).ownerId,3);assert.equal(received.value.instances.find(i=>i.id===secondCardId).ownerId,3);assert.equal(received.value.instances.find(i=>i.id===theirCardId).ownerId,2);assert.equal(received.value.players[2].credits,oldCredits-3);
  await page.reload();await page.waitForFunction(()=>S&&backend==='cloud');assert.equal(await page.evaluate(()=>S.ui.acting),2);
  assert.deepEqual(errors,[]);console.log('PASS: player identity, own/all cards, use, open/buy packs, multi-item offer/accept exchange, reload, all mobile tabs. Screenshots: '+work);
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill();});
