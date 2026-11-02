@@ -239,7 +239,7 @@ function applyPlayerOperation(state,operation){
     const {action,target,inputs,note}=operation;
     if(!player(accountSession.playerId))throw Error('Your player was removed from the table.');
     let result;
-    if(action==='seasonEdit'||action==='seasonBid')applySeasonOperation(operation);
+    if(action==='seasonEdit'||action==='seasonBid'||action==='seasonReady')applySeasonOperation(operation);
     else if(action==='buy')result=rollStandard(accountSession.playerId);
     else if(action==='open')result=openPack(Number(target),accountSession.playerId);
     else if(action==='use'){
@@ -290,7 +290,7 @@ document.addEventListener('click',async event=>{
   if(!button||!isPlayer()||backend!=='cloud'||playerBusy)return;
   if(pendingPlayerOperation){flash('Retry your pending action before starting another.',true);return;}
   const action=button.dataset.playerAct,target=button.dataset.id;
-  if(!['refresh','buy','open','use','offer','accept','decline','cancel','seasonEdit','seasonBid'].includes(action))return;
+  if(!['refresh','buy','open','use','offer','accept','decline','cancel','seasonEdit','seasonBid','seasonReady'].includes(action))return;
   if(action==='refresh'){
     playerBusy=true;
     try{const cloud=await connectFirebase();await verifyCurrentAccount(cloud);const latest=await cloud.readState();validateTable(latest);const ui=S.ui;S=hydrate(latest);S.ui=ui;preparePlayerUi();render();flash('Saved online');}
@@ -299,6 +299,14 @@ document.addEventListener('click',async event=>{
   }
   let inputs=action==='offer'?{giveItems:[...playerTradeDraft.give],receiveItems:[...playerTradeDraft.receive],giveCredits:Number(playerTradeDraft.giveCredits),receiveCredits:Number(playerTradeDraft.receiveCredits),
     conditions:Object.fromEntries([...playerTradeDraft.give,...playerTradeDraft.receive].map(value=>[value,tradeFingerprint(value)]))}:null;
+  if(action==='seasonReady'){
+    const section=button.closest('[data-season-section]');
+    for(const form of section.querySelectorAll('[data-season-design]')){
+      const saved=JSON.parse(form.dataset.base);
+      if(['title','meme','request','limits'].some(key=>form.querySelector('[name="'+key+'"]').value.trim()!==(saved[key]||''))){say('Save your card edits before confirming.','err');return;}
+    }
+    inputs={setId:Number(target),base:button.dataset.base};
+  }
   if(action==='seasonEdit'){
     const form=button.closest('[data-season-design]');inputs={setId:Number(form.dataset.set),designId:Number(target),base:form.dataset.base};
     for(const key of ['title','meme','request','limits'])inputs[key]=form.querySelector('[name="'+key+'"]').value.trim();
@@ -316,7 +324,7 @@ function playerSeasonView(){
   const sets=S.sets.filter(s=>['DRAFT','BIDDING','DEFENSE'].includes(s.state));
   if(!sets.length)return '<section class="panel"><h2>Next season</h2><p>The admin has not opened preparations yet.</p></section>';
   return sets.map(set=>{
-    let html='<section class="panel"><h2>'+esc(set.name)+'</h2><p>Defense automanaged</p>';
+    let html='<section class="panel" data-season-section><h2>'+esc(set.name)+'</h2><p>Defense automanaged</p>';
     if(set.state==='DRAFT'){
       html+='<p>Your previous designs are carried forward. Edit only what you want to change; unchanged cards are kept automatically.</p>';
       for(const d of set.designs.filter(d=>d.authorId===accountSession.playerId)){
@@ -325,6 +333,9 @@ function playerSeasonView(){
         html+='<button data-player-act="seasonEdit" data-id="'+d.id+'">Save card</button></div>';
       }
       if(!set.designs.some(d=>d.authorId===accountSession.playerId))html+='<p>Ask the admin to add your starting card designs.</p>';
+      const ready=draftReady(set,accountSession.playerId);
+      html+='<p role="status"><strong>'+(ready?'Cards finalized':'Awaiting your confirmation')+'</strong></p>';
+      html+='<button class="primary" data-player-act="seasonReady" data-id="'+set.id+'" data-base="'+esc(draftFingerprint(set,accountSession.playerId))+'"'+(ready?' disabled':'')+'>Confirm my cards are final</button><p><small>Further edits clear this confirmation automatically.</small></p>';
     }else if(set.state==='BIDDING'&&set.participants.includes(accountSession.playerId)){
       if(set.locked[accountSession.playerId])html+='<p>Your bids are sealed. Waiting for the admin to close the auction.</p>';
       else{
@@ -338,7 +349,11 @@ function playerSeasonView(){
 }
 function applySeasonOperation(operation){
   const {inputs,action}=operation,set=getSet(inputs.setId),me=accountSession.playerId;
-  if(action==='seasonEdit'){
+  if(action==='seasonReady'){
+    if(!set||set.state!=='DRAFT')throw Error('Card preparation has closed.');
+    if(inputs.base!==draftFingerprint(set,me))throw Error('Your cards changed. Review them before confirming.');
+    confirmDraft(set,me);
+  }else if(action==='seasonEdit'){
     const d=set?.designs.find(d=>d.id===inputs.designId&&d.authorId===me);
     if(!d||set.state!=='DRAFT')throw Error('Card preparation has closed. Refresh to see the current stage.');
     if(JSON.stringify(d)!==inputs.base)throw Error('This design changed elsewhere. Refresh before editing again.');

@@ -82,6 +82,11 @@ const ACTIONS = {
     const set = currentSet(); if(!set || set.state !== "DRAFT") return;
     set.designs = set.designs.filter(d => d.id !== Number(id));
   },
+  confirmPlayerDraft(id){
+    const set=currentSet();if(!set||set.state!=='DRAFT')return;
+    if(draftReady(set,id)){delete set.draftReady[id];return;}
+    confirmDraft(set,Number(id));
+  },
   openBidding(){
     const set = currentSet();
     if(!set || set.state !== "DRAFT") return say("No DRAFT set selected.", "err");
@@ -92,6 +97,8 @@ const ACTIONS = {
     if(participants.length < 2) return say("At least two people need requests in the set.", "err");
     const bad = participants.filter(id => per[id] !== K);
     if(bad.length) return say("Wrong request count for: " + bad.map(playerName).join(", ") + " (need exactly " + K + ").", "err");
+    const waiting=participants.filter(id=>!draftReady(set,id));
+    if(waiting.length&&!confirm('Cards are not confirmed by: '+waiting.map(playerName).join(', ')+'. Open the auction anyway?'))return;
     set.participants = participants;
     set.state = "BIDDING";
     set.bids = {}; set.locked = {}; set.defense = {}; set.defLocked = {};

@@ -195,7 +195,7 @@ function viewSetup(){
         const ok = n === set.config.cardsPerPlayer;
         html += "<tr><td>" + esc(p.name) + "</td>" +
           '<td class="num" style="color:' + (ok ? "var(--good)" : n > set.config.cardsPerPlayer ? "var(--bad)" : "var(--dim)") + '">' +
-          n + " / " + set.config.cardsPerPlayer + "</td></tr>";
+          n + " / " + set.config.cardsPerPlayer + '</td><td>'+(draftReady(set,p.id)?'Cards finalized':'Not confirmed')+'</td><td><button data-act="confirmPlayerDraft" data-id="'+p.id+'">'+(draftReady(set,p.id)?'Reopen':'Confirm for player')+'</button></td></tr>';
       }
       html += "</tbody></table></div>";
       html += '<div class="row" style="margin-top:12px"><button class="primary big" data-act="openBidding">Open the auction &rarr;</button></div>';

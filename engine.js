@@ -398,3 +398,11 @@ function autoManageDefense(set){
     set.defLocked[author]=true;
   }
 }
+
+function draftFingerprint(set,author){return JSON.stringify(set.designs.filter(d=>d.authorId===Number(author)));}
+function draftReady(set,author){return set.draftReady?.[author]===draftFingerprint(set,author);}
+function confirmDraft(set,author){
+  const own=set.designs.filter(d=>d.authorId===Number(author));
+  if(set.state!=='DRAFT'||own.length!==set.config.cardsPerPlayer||own.some(d=>!d.title.trim()||!d.request.trim()))throw Error('Complete all required cards before confirming.');
+  set.draftReady=set.draftReady||{};set.draftReady[author]=draftFingerprint(set,author);
+}
