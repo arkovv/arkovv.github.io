@@ -625,3 +625,11 @@ body.signed-out > header, body.signed-out > footer { display: none; }
   .trade-submit { display:block; }
   .trade-submit button { width:100%; margin-top:10px; }
 }
+
+/* Keep custom artwork legible with long season titles and on small screens. */
+.collectible h3,.collectible .card-meme{overflow-wrap:anywhere;text-shadow:0 2px 5px #000;}
+.collectible .who,.collectible .finish-name,.collectible .card-owner{overflow-wrap:anywhere;}
+.doppler-marble{object-fit:fill;pointer-events:none;}
+[data-season-design] textarea{width:100%;min-height:70px;resize:vertical;}
+[data-season-bids] label{display:block;padding:16px 0;border-bottom:1px solid var(--line);}
+[data-season-bids] input{max-width:180px;}

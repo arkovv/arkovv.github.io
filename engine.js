@@ -384,3 +384,17 @@ function designText(designId){
   return f ? (playerName(f.design.authorId) + " — " + f.design.title) : "card #" + designId;
 }
 
+
+// Allocate each author's integer defense budget by demand, with stable rounding.
+function autoManageDefense(set){
+  const demand=demandMap(set);set.defense={};set.defLocked={};
+  for(const author of set.participants){
+    const cards=set.designs.filter(d=>d.authorId===author),total=cards.reduce((n,d)=>n+(demand[d.id]||0),0);
+    const rows=cards.map(d=>({id:d.id,exact:set.config.defenseBudget*(total?(demand[d.id]||0)/total:1/cards.length)}));
+    let remaining=set.config.defenseBudget;
+    for(const r of rows){set.defense[r.id]=Math.floor(r.exact);remaining-=set.defense[r.id];}
+    rows.sort((a,b)=>(b.exact-Math.floor(b.exact))-(a.exact-Math.floor(a.exact))||a.id-b.id);
+    for(let n=0;n<remaining;n++)set.defense[rows[n].id]++;
+    set.defLocked[author]=true;
+  }
+}

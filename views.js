@@ -207,7 +207,7 @@ function viewSetup(){
         html += '<div class="design"><div class="who">' + esc(playerName(d.authorId)) + "</div>" +
           "<h3>" + esc(d.title) + "</h3><p>" + esc(d.meme) + "</p>" +
           "<details><summary>Request &amp; limits</summary><p>" + esc(d.request) + "</p><small>" + esc(d.limits) + "</small></details>" +
-          (set.state === "DRAFT" ? '<button class="x danger" data-act="delDesign" data-id="' + d.id + '">&times;</button>' : "") +
+          (set.state === "DRAFT" ? '<button data-act="editDesign" data-id="'+d.id+'">Edit</button><button class="x danger" data-act="delDesign" data-id="' + d.id + '">&times;</button>' : "") +
           "</div>";
       }
       html += "</div>";
@@ -288,6 +288,7 @@ function biddingPanel(set){
 }
 
 function defensePanel(set){
+  if(set.autoDefense)return '<section class="panel"><h2>Defense automanaged</h2><p>Bidding is closed. Launching freezes the market, pays rewards, and creates bidder packs exactly once.</p><button data-act="finalize" class="primary">Launch season</button></section>';
   const budget = set.config.defenseBudget;
   const ids = set.participants;
   let who = S.ui.acting;

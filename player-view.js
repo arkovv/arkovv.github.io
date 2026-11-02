@@ -1,4 +1,4 @@
-const PLAYER_TABS=[['cards','My Cards'],['catalog','All Cards'],['packs','Packs'],['trading','Trading']];
+const PLAYER_TABS=[['season','Next season'],['cards','My Cards'],['catalog','All Cards'],['packs','Packs'],['trading','Trading']];
 let playerBusy=false;
 function emptyTradeDraft(){return {give:[],receive:[],giveCredits:'0',receiveCredits:'0'};}
 let playerTradeDraft=emptyTradeDraft();
@@ -41,7 +41,8 @@ function renderPlayerView(){
   let html='<section class="player-welcome"><div><div class="eyebrow">YOUR SEAT AT THE TABLE</div><h1>Hey, '+esc(me.name)+'.</h1><p>A collection of promises. Make your next move.</p></div><div class="player-balance"><span>YOUR BALANCE</span><strong>'+me.credits.toLocaleString()+'<small> C</small></strong></div></section>';
   html+='<div class="player-summary"><span><b>'+cards.length+'</b> collected cards</span><span><b>'+active+'</b> ready to use</span><span><b>'+packs.length+'</b> unopened packs</span><button data-player-act="refresh" class="ghost">Refresh table</button></div>';
   html+=noticeHtml();
-  if(S.ui.tab==='catalog')html+=playerCatalogView();
+  if(S.ui.tab==='season')html+=playerSeasonView();
+  else if(S.ui.tab==='catalog')html+=playerCatalogView();
   else if(S.ui.tab==='packs')html+=playerPacksView();
   else if(S.ui.tab==='trading')html+=playerTradingView();
   else html+=playerCardsView();
@@ -238,7 +239,8 @@ function applyPlayerOperation(state,operation){
     const {action,target,inputs,note}=operation;
     if(!player(accountSession.playerId))throw Error('Your player was removed from the table.');
     let result;
-    if(action==='buy')result=rollStandard(accountSession.playerId);
+    if(action==='seasonEdit'||action==='seasonBid')applySeasonOperation(operation);
+    else if(action==='buy')result=rollStandard(accountSession.playerId);
     else if(action==='open')result=openPack(Number(target),accountSession.playerId);
     else if(action==='use'){
       const card=S.instances.find(i=>i.id===Number(target)&&i.ownerId===accountSession.playerId&&i.state==='ACTIVE');
@@ -288,17 +290,65 @@ document.addEventListener('click',async event=>{
   if(!button||!isPlayer()||backend!=='cloud'||playerBusy)return;
   if(pendingPlayerOperation){flash('Retry your pending action before starting another.',true);return;}
   const action=button.dataset.playerAct,target=button.dataset.id;
-  if(!['refresh','buy','open','use','offer','accept','decline','cancel'].includes(action))return;
+  if(!['refresh','buy','open','use','offer','accept','decline','cancel','seasonEdit','seasonBid'].includes(action))return;
   if(action==='refresh'){
     playerBusy=true;
     try{const cloud=await connectFirebase();await verifyCurrentAccount(cloud);const latest=await cloud.readState();validateTable(latest);const ui=S.ui;S=hydrate(latest);S.ui=ui;preparePlayerUi();render();flash('Saved online');}
     catch(error){if(['permission-denied','session-changed','unauthenticated'].includes(error.code))requestReauthentication(error.message);else flash(error.message,true);}
     finally{playerBusy=false;flushReauthentication();drainLiveSnapshot();}return;
   }
-  const inputs=action==='offer'?{giveItems:[...playerTradeDraft.give],receiveItems:[...playerTradeDraft.receive],giveCredits:Number(playerTradeDraft.giveCredits),receiveCredits:Number(playerTradeDraft.receiveCredits),
+  let inputs=action==='offer'?{giveItems:[...playerTradeDraft.give],receiveItems:[...playerTradeDraft.receive],giveCredits:Number(playerTradeDraft.giveCredits),receiveCredits:Number(playerTradeDraft.receiveCredits),
     conditions:Object.fromEntries([...playerTradeDraft.give,...playerTradeDraft.receive].map(value=>[value,tradeFingerprint(value)]))}:null;
+  if(action==='seasonEdit'){
+    const form=button.closest('[data-season-design]');inputs={setId:Number(form.dataset.set),designId:Number(target),base:form.dataset.base};
+    for(const key of ['title','meme','request','limits'])inputs[key]=form.querySelector('[name="'+key+'"]').value.trim();
+  }
+  if(action==='seasonBid'){
+    const form=button.closest('[data-season-bids]');inputs={setId:Number(target),bids:Object.fromEntries([...form.querySelectorAll('[data-bid-design]')].map(el=>[el.dataset.bidDesign,Number(el.value)]))};
+  }
   const note=action==='use'?prompt('How was this promise fulfilled?',''):null;
   if(action==='use'&&note===null)return;
   pendingPlayerOperation={id:crypto.randomUUID(),at:Date.now(),account:{...accountSession},action,target,inputs,note,words:[]};
   savePendingOperation();await submitPlayerOperation();
 });
+
+function playerSeasonView(){
+  const sets=S.sets.filter(s=>['DRAFT','BIDDING','DEFENSE'].includes(s.state));
+  if(!sets.length)return '<section class="panel"><h2>Next season</h2><p>The admin has not opened preparations yet.</p></section>';
+  return sets.map(set=>{
+    let html='<section class="panel"><h2>'+esc(set.name)+'</h2><p>Defense automanaged</p>';
+    if(set.state==='DRAFT'){
+      html+='<p>Your previous designs are carried forward. Edit only what you want to change; unchanged cards are kept automatically.</p>';
+      for(const d of set.designs.filter(d=>d.authorId===accountSession.playerId)){
+        html+='<div class="panel" data-season-design data-set="'+set.id+'" data-base="'+esc(JSON.stringify(d))+'">';
+        for(const key of ['title','meme','request','limits'])html+='<label>'+esc(key)+'<textarea name="'+key+'" maxlength="4000">'+esc(d[key]||'')+'</textarea></label>';
+        html+='<button data-player-act="seasonEdit" data-id="'+d.id+'">Save card</button></div>';
+      }
+      if(!set.designs.some(d=>d.authorId===accountSession.playerId))html+='<p>Ask the admin to add your starting card designs.</p>';
+    }else if(set.state==='BIDDING'&&set.participants.includes(accountSession.playerId)){
+      if(set.locked[accountSession.playerId])html+='<p>Your bids are sealed. Waiting for the admin to close the auction.</p>';
+      else{
+        html+='<div data-season-bids><p>Allocate exactly '+set.config.desireBudget+' bidding credits, then seal your bids.</p>';
+        for(const d of set.designs.filter(d=>d.authorId!==accountSession.playerId))html+='<label><strong>'+esc(playerName(d.authorId))+' · '+esc(d.title)+'</strong><p>'+esc(d.request)+'</p><small>'+esc(d.limits)+'</small><input type="number" min="0" step="1" data-bid-design="'+d.id+'" value="'+(set.bids[accountSession.playerId]?.[d.id]||0)+'"></label>';
+        html+='<button class="primary" data-player-act="seasonBid" data-id="'+set.id+'">Seal bids</button></div>';
+      }
+    }else html+='<p>Waiting for the admin to launch the season.</p>';
+    return html+'</section>';
+  }).join('');
+}
+function applySeasonOperation(operation){
+  const {inputs,action}=operation,set=getSet(inputs.setId),me=accountSession.playerId;
+  if(action==='seasonEdit'){
+    const d=set?.designs.find(d=>d.id===inputs.designId&&d.authorId===me);
+    if(!d||set.state!=='DRAFT')throw Error('Card preparation has closed. Refresh to see the current stage.');
+    if(JSON.stringify(d)!==inputs.base)throw Error('This design changed elsewhere. Refresh before editing again.');
+    if(!inputs.title||!inputs.request)throw Error('Title and request are required.');
+    for(const key of ['title','meme','request','limits']){if(typeof inputs[key]!=='string'||inputs[key].length>4000)throw Error('Card text is too long.');d[key]=inputs[key];}
+  }else{
+    if(!set||set.state!=='BIDDING'||!set.participants.includes(me)||set.locked[me])throw Error('Bidding is closed or your bids are already sealed.');
+    const allowed=new Set(set.designs.filter(d=>d.authorId!==me).map(d=>String(d.id)));let total=0;
+    for(const [id,value] of Object.entries(inputs.bids)){if(!allowed.has(id)||!Number.isSafeInteger(value)||value<0)throw Error('Invalid bid.');total+=value;}
+    if(total!==set.config.desireBudget)throw Error('Allocate exactly '+set.config.desireBudget+' bidding credits.');
+    set.bids[me]={...inputs.bids};set.locked[me]=true;
+  }
+}

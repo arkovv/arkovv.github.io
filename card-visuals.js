@@ -240,7 +240,9 @@ function dopplerSurface(i){
       if(color!==last){if(x>start)rects+='<rect x="'+start+'" y="'+y+'" width="'+(x-start)+'" height="1" fill="'+last+'"/>';start=x;last=color;}
     }
   }
-  const html='<div class="doppler-surface'+(p.emerald?' doppler-emerald':'')+'" aria-hidden="true" data-green-percent="'+p.greenPercent+'"><svg class="doppler-marble" viewBox="0 0 80 100" preserveAspectRatio="none">'+rects+'</svg><svg class="doppler-marble doppler-reflection" viewBox="0 0 80 100" preserveAspectRatio="none">'+rects+'</svg><div class="doppler-light"></div></div>';
+  // Reuse a single decoded image for both layers instead of thousands of SVG DOM nodes.
+  const source='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 100" preserveAspectRatio="none">'+rects+'</svg>');
+  const html='<div class="doppler-surface'+(p.emerald?' doppler-emerald':'')+'" aria-hidden="true" data-green-percent="'+p.greenPercent+'"><img alt="" loading="lazy" decoding="async" class="doppler-marble" src="'+source+'"><img alt="" loading="lazy" decoding="async" class="doppler-marble doppler-reflection" src="'+source+'"><div class="doppler-light"></div></div>';
   if(dopplerCache.size>=64)dopplerCache.delete(dopplerCache.keys().next().value);
   dopplerCache.set(p.catalog,html);return html;
 }

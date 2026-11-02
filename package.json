@@ -4,7 +4,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:pages": "node scripts/build.mjs --require-config",
-    "test": "node tests/regression.cjs && node --test tests/cloud-store.test.mjs tests/session-client.test.mjs tests/concurrency.test.mjs",
+    "test": "node tests/regression.cjs && node --test tests/cloud-store.test.mjs tests/session-client.test.mjs tests/concurrency.test.mjs tests/season.test.cjs",
     "test:browser": "node tests/auth-browser.cjs && node tests/browser.cjs && node tests/pages-browser.cjs && node tests/player-browser.cjs && node tests/multiplayer-browser.cjs"
   }
 }

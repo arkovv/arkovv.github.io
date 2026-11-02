@@ -30,6 +30,11 @@ const ACTIONS = {
     if(S.players.length < 2) return say("Add at least two players first.", "err");
     const ordinal = S.sets.reduce((m, s) => Math.max(m, s.ordinal), 0) + 1;
     const set = newSet(ordinal, name, S.config);
+    set.autoDefense = true;
+    for(const person of S.players){
+      const previous=[...S.sets].sort((a,b)=>b.ordinal-a.ordinal).find(s=>s.designs.some(d=>d.authorId===person.id));
+      if(previous)for(const d of previous.designs.filter(d=>d.authorId===person.id).slice(0,set.config.cardsPerPlayer))set.designs.push({...d,id:nextId('design')});
+    }
     S.sets.push(set);
     S.ui.setId = set.id;
     logEvent("Set " + ordinal + " created: " + name + ".");
@@ -65,6 +70,13 @@ const ACTIONS = {
       limits: (document.getElementById("dLimits").value || "").trim() || "Reasonable, safe, legal, and within the agreed scope."
     });
     ["dTitle","dMeme","dRequest","dLimits"].forEach(k => { document.getElementById(k).value = ""; });
+  },
+  editDesign(id){
+    const set=currentSet(),d=set?.designs.find(d=>d.id===Number(id));
+    if(!d||set.state!=='DRAFT')return;
+    const edits={};for(const key of ['title','meme','request','limits']){const value=prompt(key,d[key]||'');if(value===null)return;edits[key]=value.trim();}
+    if(!edits.title||!edits.request)return say('Title and request are required.','err');
+    Object.assign(d,edits);
   },
   delDesign(id){
     const set = currentSet(); if(!set || set.state !== "DRAFT") return;
@@ -132,6 +144,7 @@ const ACTIONS = {
   finalize(){
     const set = currentSet();
     if(!set || set.state !== "DEFENSE") return say("Close bidding first.", "err");
+    if(set.autoDefense)autoManageDefense(set);
     if(!confirm(revealPreview(set))) return;
     for(const d of set.designs) if(set.defense[d.id] == null) set.defense[d.id] = 0;
     needsBackup++;
@@ -372,12 +385,13 @@ function closeBiddingInner(force){
   const missing = set.participants.filter(id => !set.locked[id]);
   if(missing.length && !force) return say("Still waiting on: " + missing.map(playerName).join(", "), "err");
   if(missing.length && !confirm(missing.map(playerName).join(", ") + " never locked an allocation. Treat their bids as zero?")) return;
-  for(const id of missing){ set.bids[id] = set.bids[id] || {}; set.locked[id] = true; }
+  for(const id of missing){ set.bids[id] = {}; set.locked[id] = true; }
   set.state = "DEFENSE";
+  if(set.autoDefense)autoManageDefense(set);
   for(const d of set.designs) if(set.defense[d.id] == null) set.defense[d.id] = 0;
   S.ui.acting = set.participants[0];
   logEvent("Set " + set.ordinal + " bidding closed. Defense open.");
-  say("Bidding sealed. Now each author allocates defense — or skip it entirely.");
+  say(set.autoDefense ? "Bidding sealed. Defense automanaged. Admin can launch the season." : "Bidding sealed. Defense allocation is open.");
 }
 
 /* ---- demo table ----------------------------------------- */
